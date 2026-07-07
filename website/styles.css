@@ -1,0 +1,187 @@
+/* Isha marketing site — one calm, coherent visual language, shared by every
+   page. Mirrors the app's ui_theme.py palette so the site and the product feel
+   like the same thing. No external fonts, no frameworks, no trackers — a static
+   site you can host anywhere for free (see README.md). */
+
+:root {
+  --bg: #ffffff;
+  --bg-soft: #f5f7fa;
+  --bg-card: #ffffff;
+  --border: #e4e8ee;
+  --fg: #1c2230;
+  --fg-muted: #55607a;
+  --fg-faint: #8a93a6;
+  --accent: #3a6ff0;
+  --accent-hover: #2b5bd6;
+  --accent-soft: #eaf1ff;
+  --success: #2f9e6b;
+  --shadow: 0 1px 2px rgba(20, 30, 60, .04), 0 8px 24px rgba(20, 30, 60, .06);
+  --radius: 14px;
+  --maxw: 1080px;
+  --font: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14171d;
+    --bg-soft: #191c22;
+    --bg-card: #21252d;
+    --border: #2c313b;
+    --fg: #eceef2;
+    --fg-muted: #a7afbe;
+    --fg-faint: #737b8c;
+    --accent: #5b8def;
+    --accent-hover: #729df2;
+    --accent-soft: #1e2836;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35);
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  color: var(--fg);
+  background: var(--bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+.narrow { max-width: 720px; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: var(--accent-hover); }
+
+h1, h2, h3 { line-height: 1.2; letter-spacing: -.02em; font-weight: 650; }
+
+/* ---- top nav ---- */
+header.nav {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: saturate(140%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; color: var(--fg); font-size: 18px; }
+.brand .glyph {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), #7aa5f6);
+  color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 15px;
+}
+.nav nav { display: flex; align-items: center; gap: 28px; }
+.nav nav a { color: var(--fg-muted); font-size: 15px; }
+.nav nav a:hover { color: var(--fg); }
+
+/* ---- buttons ---- */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 22px; border-radius: 10px; font-size: 15px; font-weight: 600;
+  border: 1px solid transparent; cursor: pointer; transition: .15s ease; white-space: nowrap;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); color: #fff; transform: translateY(-1px); }
+.btn-ghost { background: transparent; color: var(--fg); border-color: var(--border); }
+.btn-ghost:hover { border-color: var(--fg-faint); color: var(--fg); }
+.btn-lg { padding: 15px 30px; font-size: 16px; }
+
+/* ---- hero ---- */
+.hero { padding: 96px 0 72px; text-align: center; }
+.eyebrow {
+  display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--accent);
+  background: var(--accent-soft); padding: 6px 14px; border-radius: 999px; margin-bottom: 24px;
+}
+.hero h1 { font-size: clamp(38px, 6vw, 62px); margin-bottom: 22px; }
+.hero p.lead { font-size: clamp(18px, 2.4vw, 22px); color: var(--fg-muted); max-width: 640px; margin: 0 auto 36px; }
+.hero .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.hero .fineprint { margin-top: 18px; font-size: 14px; color: var(--fg-faint); }
+
+/* ---- terminal / demo card ---- */
+.demo {
+  margin: 56px auto 0; max-width: 680px; text-align: left;
+  background: #1a1e26; border: 1px solid #2c313b; border-radius: var(--radius);
+  box-shadow: var(--shadow); overflow: hidden;
+}
+.demo .bar { display: flex; gap: 7px; padding: 14px 16px; border-bottom: 1px solid #2c313b; }
+.demo .bar i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+.demo .bar i:nth-child(1){ background:#ec6a5e; } .demo .bar i:nth-child(2){ background:#f4bf4f; } .demo .bar i:nth-child(3){ background:#61c554; }
+.demo .body { padding: 22px 24px; font-family: "SF Mono", "Cascadia Code", Consolas, monospace; font-size: 14.5px; line-height: 1.9; color: #cdd3df; }
+.demo .body .u { color: #eceef2; }
+.demo .body .u::before { content: "› "; color: #5b8def; }
+.demo .body .ok { color: #6fcf97; }
+.demo .body .dim { color: #737b8c; }
+
+/* ---- sections ---- */
+section { padding: 80px 0; }
+section.soft { background: var(--bg-soft); }
+.section-head { text-align: center; max-width: 620px; margin: 0 auto 56px; }
+.section-head h2 { font-size: clamp(28px, 4vw, 40px); margin-bottom: 14px; }
+.section-head p { font-size: 18px; color: var(--fg-muted); }
+
+/* ---- feature grid ---- */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 28px; box-shadow: var(--shadow);
+}
+.card .ico { width: 42px; height: 42px; border-radius: 11px; background: var(--accent-soft); color: var(--accent);
+  display: grid; place-items: center; font-size: 20px; margin-bottom: 16px; }
+.card h3 { font-size: 19px; margin-bottom: 8px; }
+.card p { color: var(--fg-muted); font-size: 15.5px; }
+
+/* ---- privacy strip ---- */
+.privacy-strip { text-align: center; }
+.privacy-strip .badge-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 32px; }
+.privacy-strip .badge {
+  display: flex; align-items: center; gap: 10px; padding: 14px 20px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--bg-card); font-weight: 550; font-size: 15px;
+}
+.privacy-strip .badge .dot { color: var(--success); font-size: 18px; }
+
+/* ---- pricing ---- */
+.price-card {
+  max-width: 460px; margin: 0 auto; text-align: center;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px;
+  padding: 44px 40px; box-shadow: var(--shadow); position: relative;
+}
+.price-card .amount { font-size: 56px; font-weight: 700; letter-spacing: -.03em; }
+.price-card .amount small { font-size: 18px; font-weight: 500; color: var(--fg-faint); }
+.price-card .once { color: var(--fg-muted); margin-bottom: 28px; }
+.price-card ul { list-style: none; text-align: left; margin: 28px 0; display: grid; gap: 12px; }
+.price-card li { display: flex; gap: 11px; align-items: flex-start; color: var(--fg); font-size: 15.5px; }
+.price-card li .chk { color: var(--success); font-weight: 700; flex-shrink: 0; }
+.price-card .btn { width: 100%; justify-content: center; }
+
+/* ---- faq ---- */
+.faq { display: grid; gap: 14px; max-width: 760px; margin: 0 auto; }
+details.q { border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); padding: 4px 22px; }
+details.q summary { cursor: pointer; font-weight: 600; padding: 18px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+details.q summary::-webkit-details-marker { display: none; }
+details.q summary::after { content: "+"; color: var(--fg-faint); font-size: 22px; font-weight: 400; }
+details.q[open] summary::after { content: "–"; }
+details.q p { padding: 0 0 20px; color: var(--fg-muted); }
+
+/* ---- footer ---- */
+footer.site { border-top: 1px solid var(--border); padding: 48px 0; color: var(--fg-faint); font-size: 14.5px; }
+footer.site .wrap { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: center; }
+footer.site nav { display: flex; gap: 22px; flex-wrap: wrap; }
+footer.site nav a { color: var(--fg-muted); }
+
+/* ---- legal / doc pages ---- */
+.doc { padding: 64px 0 96px; }
+.doc h1 { font-size: 38px; margin-bottom: 8px; }
+.doc .updated { color: var(--fg-faint); margin-bottom: 40px; font-size: 15px; }
+.doc h2 { font-size: 22px; margin: 40px 0 12px; }
+.doc p, .doc li { color: var(--fg-muted); margin-bottom: 14px; }
+.doc ul { padding-left: 22px; }
+.doc a { text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .nav nav a:not(.btn) { display: none; }
+  section { padding: 60px 0; }
+  .hero { padding: 64px 0 48px; }
+}

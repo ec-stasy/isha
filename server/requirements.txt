@@ -1,0 +1,8 @@
+# Dependencies for the license-fulfilment webhook (server/license_webhook.py).
+# This is SEPARATE from the app's requirements.txt — it only runs on your
+# server, never on a customer machine.
+Flask           # tiny web framework for the webhook endpoint
+cryptography    # Ed25519 signing — same primitive a_licensing.py verifies with
+# (SMTP email uses stdlib smtplib — no extra dependency.)
+# Deploy behind a production WSGI server (gunicorn) rather than Flask's dev
+# server:  pip install gunicorn ; gunicorn -b 0.0.0.0:8000 license_webhook:app
