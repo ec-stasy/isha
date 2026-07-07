@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <!-- single sprig, one blossom — marks the overlay edge, toast corner, empty states -->
+  <path d="M6 44 C 14 34, 22 26, 34 18" stroke="#000000" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <path d="M20 30 C 24 28, 27 25, 29 21" stroke="#000000" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+  <g transform="translate(36,15)" fill="#C9748A">
+    <path d="M0-7 C 2.4-7 4-4.8 4-2.4 C 6.4-3.2 8.8-1.6 8.8 0.8 C 8.8 3.2 6.4 4.8 4 4.8 C 4.8 7.2 3.2 9.6 0.8 9.6 C -1.6 9.6 -3.2 8 -3.2 5.6 C -5.6 7.2 -8 5.6 -8 3.2 C -8 0.8 -6.4-1.6 -4-1.6 C -5.6-4 -4-7 -1.6-7 Z" opacity="0.9"/>
+    <circle cx="0" cy="1" r="1.4" fill="#8A5563"/>
+  </g>
+  <circle cx="22" cy="29" r="2.2" fill="#C9748A" opacity="0.6"/>
+</svg>

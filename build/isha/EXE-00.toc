@@ -1,0 +1,99 @@
+('D:\\Projects\\windows_assistant\\build\\isha\\Isha.exe',
+ False,
+ False,
+ True,
+ ['D:\\Projects\\windows_assistant\\packaging\\isha.ico'],
+ versioninfo.VSVersionInfo(ffi=versioninfo.FixedFileInfo(filevers=(2, 0, 0, 0), prodvers=(2, 0, 0, 0), mask=0x3f, flags=0x0, OS=0x40004, fileType=1, subtype=0x0, date=(0, 0)), kids=[versioninfo.StringFileInfo([versioninfo.StringTable('040904B0', [versioninfo.StringStruct('CompanyName', 'Isha'), versioninfo.StringStruct('FileDescription', 'Isha — local assistant for Windows'), versioninfo.StringStruct('FileVersion', '2.0.0.0'), versioninfo.StringStruct('InternalName', 'Isha'), versioninfo.StringStruct('LegalCopyright', '© 2026 Isha'), versioninfo.StringStruct('OriginalFilename', 'Isha.exe'), versioninfo.StringStruct('ProductName', 'Isha'), versioninfo.StringStruct('ProductVersion', '2.0.0.0')])]), versioninfo.VarFileInfo([versioninfo.VarStruct('Translation', [1033, 1200])])]),
+ False,
+ False,
+ b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<!--\n  Isha appl'
+ b'ication manifest.\n  requestedExecutionLevel = asInvoker  (deliberately N'
+ b'OT requireAdmin).\n  Isha is a single-user desktop app: it manages the cu'
+ b"rrent user's apps, modes,\n  config in %APPDATA%\\Isha, and per-user setti"
+ b'ngs. None of that needs\n  Administrator rights. Requiring elevation woul'
+ b'd:\n    - pop a UAC prompt on every single launch (terrible for a tray ap'
+ b'p that\n      starts with Windows),\n    - make Microsoft SmartScreen wari'
+ b'er of the installer,\n    - break the "start with Windows" convenience (e'
+ b'levated auto-start is\n      blocked by default).\n  The few actions that '
+ b'DO need elevation (e.g. a system-wide shutdown on some\n  policies) are i'
+ b"nvoked through Windows' own APIs, which prompt as needed at\n  that momen"
+ b't \xe2\x80\x94 the right place for the prompt, not at app start.\n  dpiAwa'
+ b're / dpiAwareness keeps the Tk windows crisp on high-DPI displays.\n-->\n<'
+ b'assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">'
+ b'\n  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">\n    <security>\n '
+ b'     <requestedPrivileges>\n        <requestedExecutionLevel level="asInv'
+ b'oker" uiAccess="false"/>\n      </requestedPrivileges>\n    </security>\n  '
+ b'</trustInfo>\n  <application xmlns="urn:schemas-microsoft-com:asm.v3">\n  '
+ b'  <windowsSettings>\n      <dpiAware xmlns="http://schemas.microsoft.com/'
+ b'SMI/2005/WindowsSettings">true/pm</dpiAware>\n      <dpiAwareness xmlns="'
+ b'http://schemas.microsoft.com/SMI/2016/WindowsSettings">permonitorv2,permonit'
+ b'or</dpiAwareness>\n    </windowsSettings>\n  </application>\n  <!-- Declare'
+ b' Windows 10/11 compatibility so version APIs report correctly. -->\n  <co'
+ b'mpatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">\n    <app'
+ b'lication>\n      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"'
+ b'/>\n      <!-- Win 10/11 -->\n    </application>\n  </compatibility>\n  <dep'
+ b'endency>\n    <dependentAssembly>\n      <assemblyIdentity type="win32" na'
+ b'me="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitectu'
+ b're="*" publicKeyToken="6595b64144ccf1df" language="*"/>\n    </dependentA'
+ b'ssembly>\n  </dependency>\n</assembly>',
+ True,
+ False,
+ None,
+ None,
+ None,
+ 'D:\\Projects\\windows_assistant\\build\\isha\\Isha.pkg',
+ [('pyi-contents-directory _internal', '', 'OPTION'),
+  ('PYZ-00.pyz',
+   'D:\\Projects\\windows_assistant\\build\\isha\\PYZ-00.pyz',
+   'PYZ'),
+  ('struct',
+   'D:\\Projects\\windows_assistant\\build\\isha\\localpycs\\struct.pyc',
+   'PYMODULE'),
+  ('pyimod01_archive',
+   'D:\\Projects\\windows_assistant\\build\\isha\\localpycs\\pyimod01_archive.pyc',
+   'PYMODULE'),
+  ('pyimod02_importers',
+   'D:\\Projects\\windows_assistant\\build\\isha\\localpycs\\pyimod02_importers.pyc',
+   'PYMODULE'),
+  ('pyimod03_ctypes',
+   'D:\\Projects\\windows_assistant\\build\\isha\\localpycs\\pyimod03_ctypes.pyc',
+   'PYMODULE'),
+  ('pyimod04_pywin32',
+   'D:\\Projects\\windows_assistant\\build\\isha\\localpycs\\pyimod04_pywin32.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('pyi_rth_inspect',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgutil',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'PYSOURCE'),
+  ('pyi_rth_multiprocessing',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   'PYSOURCE'),
+  ('pyi_rth_cryptography_openssl',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks\\pyi_rth_cryptography_openssl.py',
+   'PYSOURCE'),
+  ('pyi_rth_setuptools',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
+   'PYSOURCE'),
+  ('pyi_rth_pythoncom',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks\\pyi_rth_pythoncom.py',
+   'PYSOURCE'),
+  ('pyi_rth_pywintypes',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks\\pyi_rth_pywintypes.py',
+   'PYSOURCE'),
+  ('pyi_rth_pyside6',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pyside6.py',
+   'PYSOURCE'),
+  ('app', 'D:\\Projects\\windows_assistant\\app.py', 'PYSOURCE')],
+ [],
+ False,
+ False,
+ 1783445376,
+ [('runw.exe',
+   'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
+   'EXECUTABLE')],
+ 'C:\\Users\\hp\\AppData\\Local\\Python\\pythoncore-3.14-64\\python314.DLL')

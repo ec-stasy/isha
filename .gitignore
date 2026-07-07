@@ -1,17 +1,5 @@
 __pycache__/
 *.pyc
-build/
-dist/
-*.spec.bak
 .pytest_cache/
+
 .claude/
-
-# local dev/test artifacts
-*_tmp.txt
-update_keys_tmp.txt
-license_keys_tmp.txt
-
-# never commit private keys or license secrets
-*PRIVATE_KEY*
-*private_key*
-isha_secrets/

@@ -1,0 +1,198 @@
+/* Shizuka theme template — placeholders filled by design/tokens.py per theme.
+   One accent used sparingly; curves restrained (8–14 px); no gradients,
+   no heavy shadows, nothing metallic. */
+
+* {
+    font-family: $font_family;
+    font-size: ${size_body}pt;
+    color: $fg;
+}
+
+QMainWindow, QWidget#appRoot {
+    background: $bg;
+}
+
+QWidget#pageBody, QScrollArea, QScrollArea > QWidget > QWidget {
+    background: transparent;
+}
+
+/* ------- sidebar ------- */
+QFrame#sidebar {
+    background: $bg;
+    border-right: 1px solid $border;
+}
+QPushButton.navItem {
+    background: transparent;
+    border: none;
+    border-radius: ${radius_button}px;
+    padding: 9px 12px;
+    text-align: left;
+    color: $fg_muted;
+    font-size: ${size_body}pt;
+}
+QPushButton.navItem:hover { background: $bg_hover; color: $fg; }
+QPushButton.navItem[active="true"] {
+    background: $accent_soft;
+    color: $fg;
+    font-weight: 600;
+}
+
+/* ------- cards ------- */
+QFrame.card {
+    background: $bg_raised;
+    border: 1px solid $border;
+    border-radius: ${radius_card}px;
+}
+QLabel.title { font-size: ${size_title}pt; font-weight: 600; background: transparent; }
+QLabel.subtitle { font-size: ${size_subtitle}pt; color: $fg_muted; background: transparent; }
+QLabel.hint { font-size: ${size_hint}pt; color: $fg_muted; background: transparent; }
+QLabel.secondary { font-size: ${size_secondary}pt; color: $fg_muted; background: transparent; }
+QLabel { background: transparent; }
+QLabel.success { color: $success; }
+QLabel.error { color: $error; }
+
+/* ------- buttons ------- */
+QPushButton {
+    background: $bg_raised;
+    border: 1px solid $border;
+    border-radius: ${radius_button}px;
+    padding: 7px 14px;
+    color: $fg;
+}
+QPushButton:hover { background: $bg_hover; }
+QPushButton:pressed { background: $bg_hover; border-color: $fg_faint; }
+QPushButton:focus { border: 1px solid $accent; outline: none; }
+QPushButton:disabled { color: $fg_faint; }
+
+QPushButton.accent {
+    background: $accent;
+    border: none;
+    color: $accent_text;
+    font-weight: 600;
+}
+QPushButton.accent:hover { background: $accent_hover; }
+
+QPushButton.ghost {
+    background: transparent;
+    border: none;
+    color: $fg_muted;
+    padding: 5px 8px;
+}
+QPushButton.ghost:hover { color: $fg; background: $bg_hover; }
+
+/* mic button is the one pill in the app */
+QPushButton#micButton {
+    border-radius: 17px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid $border;
+    font-size: 13pt;
+}
+QPushButton#micButton:hover { background: $bg_hover; }
+QPushButton#micButton[listening="true"] { border: 1px solid $accent; background: $accent_soft; }
+
+/* ------- inputs ------- */
+QLineEdit, QPlainTextEdit, QTextEdit, QSpinBox, QDoubleSpinBox, QComboBox, QTimeEdit, QDateTimeEdit {
+    background: $bg_raised;
+    border: 1px solid $border;
+    border-radius: ${radius_button}px;
+    padding: 7px 10px;
+    selection-background-color: $accent_soft;
+    selection-color: $fg;
+}
+QLineEdit:focus, QPlainTextEdit:focus, QTextEdit:focus, QSpinBox:focus,
+QDoubleSpinBox:focus, QComboBox:focus, QTimeEdit:focus, QDateTimeEdit:focus {
+    border: 1px solid $accent;
+}
+QLineEdit#commandBar {
+    font-size: 13pt;
+    padding: 10px 48px 10px 16px;
+    border-radius: 12px;
+}
+QComboBox::drop-down { border: none; width: 24px; }
+QComboBox QAbstractItemView {
+    background: $bg_raised;
+    border: 1px solid $border;
+    border-radius: ${radius_button}px;
+    selection-background-color: $bg_hover;
+    selection-color: $fg;
+    outline: none;
+}
+QPlainTextEdit.mono, QTextEdit.mono { font-family: $font_mono; font-size: ${size_secondary}pt; }
+
+/* ------- toggles / checkboxes ------- */
+QCheckBox { background: transparent; spacing: 8px; }
+QCheckBox::indicator {
+    width: 16px; height: 16px;
+    border: 1px solid $border;
+    border-radius: 5px;
+    background: $bg_raised;
+}
+QCheckBox::indicator:checked { background: $accent; border-color: $accent; }
+
+/* ------- lists ------- */
+QListWidget, QTreeWidget, QTableWidget {
+    background: $bg_raised;
+    border: 1px solid $border;
+    border-radius: ${radius_card}px;
+    outline: none;
+}
+QListWidget::item { padding: 7px 10px; border-radius: 6px; }
+QListWidget::item:hover { background: $bg_hover; }
+QListWidget::item:selected { background: $accent_soft; color: $fg; }
+
+/* ------- scrollbars: thin, calm, overlay-ish ------- */
+QScrollBar:vertical {
+    background: transparent;
+    width: 8px;
+    margin: 2px;
+}
+QScrollBar::handle:vertical {
+    background: $scrollbar;
+    border-radius: 3px;
+    min-height: 32px;
+}
+QScrollBar::handle:vertical:hover { background: $fg_muted; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
+QScrollBar:horizontal {
+    background: transparent;
+    height: 8px;
+    margin: 2px;
+}
+QScrollBar::handle:horizontal { background: $scrollbar; border-radius: 3px; min-width: 32px; }
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; }
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: transparent; }
+
+/* ------- menus / tooltips / tray ------- */
+QMenu {
+    background: $bg_raised;
+    border: 1px solid $border;
+    border-radius: ${radius_button}px;
+    padding: 6px;
+}
+QMenu::item { padding: 6px 22px 6px 12px; border-radius: 6px; }
+QMenu::item:selected { background: $bg_hover; }
+QToolTip {
+    background: $bg_raised;
+    color: $fg;
+    border: 1px solid $border;
+    padding: 5px 8px;
+}
+
+/* ------- quiet prompt / toast cards ------- */
+QFrame#quietPrompt, QFrame#toastCard {
+    background: $bg_raised;
+    border: 1px solid $border;
+    border-radius: ${radius_card}px;
+}
+QFrame#overlayCard {
+    background: $bg_raised;
+    border: 1px solid $border;
+    border-radius: ${radius_overlay}px;
+}
+
+/* ------- misc ------- */
+QFrame.hline { background: $border; max-height: 1px; border: none; }
+QStatusBar { background: transparent; color: $fg_muted; }
+QTextBrowser { background: $bg_raised; border: 1px solid $border; border-radius: ${radius_card}px; padding: 12px; }
