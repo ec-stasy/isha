@@ -84,8 +84,10 @@ def process_command_safe(command_input: str, config: dict, confirm_callback=None
 
 
 def _cli_confirm(resolved_ir) -> bool:
-    if resolved_ir.action == "run_mode_script":
-        prompt = f"Isha is about to run this mode script:\n  {resolved_ir.target}\nAllow? [y/N]: "
+    if resolved_ir.action == "open_unlisted_url":
+        prompt = f"{resolved_ir.target} isn't on your allow list — open it anyway? [y/N]: "
+    elif resolved_ir.action in ("run_mode_script", "run_script"):
+        prompt = f"Isha is about to run this script:\n  {resolved_ir.target}\nAllow? [y/N]: "
     else:
         name = resolved_ir.target if isinstance(resolved_ir.target, str) else (resolved_ir.target or {}).get("name") or resolved_ir.action
         prompt = f"'{resolved_ir.action}' on '{name}' can't be easily undone — proceed? [y/N]: "

@@ -1,47 +1,24 @@
 # Core (recommended, but resolver/executor degrade gracefully without them)
 rapidfuzz       # fuzzy app-name matching; falls back to stdlib difflib if absent
 
+# UI (Cycle 4 "Sakura") — the whole desktop app is Qt Widgets. Essentials
+# only (not the full PySide6 metapackage): skips ~100 MB of Addons we never
+# import. No QML/QtQuick, no QtWebEngine anywhere in the codebase.
+PySide6-Essentials
+
 # Windows-only, optional — each feature that needs one checks for it and fails
 # explicitly (never silently) if it's missing
-pywin32         # Start Menu .lnk resolution, window management (win32gui), Phase 3's
-                # mode window-layout restore and clipboard history (win32clipboard)
-pycaw           # exact volume level get/set; without it, volume falls back to media-key presses
+pywin32         # Start Menu .lnk resolution, window management (win32gui), clipboard history
+pycaw           # exact volume level + multi-device mute (F3); without it, volume falls back to media keys
 comtypes        # required by pycaw
+Pillow          # screenshot capture (a_screenshot.py)
 
-# Input layer (Phase 2) — tray icon + command palette. Global hotkey uses only
-# ctypes (stdlib), so no dependency is needed for that piece.
-pystray         # system tray icon and menu; app runs without a tray icon if absent
-Pillow          # tray icon image (pystray) and full-desktop screenshot capture (Phase 3)
-# tkinter (command palette UI) ships with the official python.org Windows
-# installer; on Linux dev boxes install the OS package (e.g. python3-tk).
-
-# Phase 3 utilities — disk/internet checks use stdlib only (shutil, socket);
-# recycle-bin emptying and snippet typing use ctypes only (no extra dependency).
-
-# Phase 4 — voice input is a fully optional module: not imported unless the
-# voice hotkey is used, and degrades to an explicit "not set up" notification
-# if either package (or the downloaded model) is missing. Kept out of the
-# core install so a plain hotkey/palette setup never pays for these.
+# Voice input is a fully optional module: not imported unless the mic/hotkey
+# is used, and degrades to an explicit "not set up" message if either package
+# (or the downloaded Vosk model) is missing.
 # vosk            # offline speech recognition model (~50MB); download separately
 # sounddevice     # microphone capture for voice input
 
-# Phase 4 utilities — mode script/volume/theme/layout setters, aliases, undo,
-# and help/onboarding all use stdlib only. Toast notifications reuse pystray's
-# icon.notify() (already optional above) with a console-print fallback; the
-# optional beep uses ctypes/winsound (stdlib on Windows, no extra dependency).
-
-# Phase 5 — issue reporting uses stdlib only (zipfile, urllib), and only ever
-# sends the built zip if settings.report_intake_url is explicitly configured.
-# Update checking also uses stdlib (urllib, hashlib) for the manifest fetch
-# and installer download/checksum, but signature verification needs the
-# optional 'cryptography' package — without it, check_for_updates fails
-# closed (never reports an update as trustworthy) rather than silently
-# skipping verification.
-#
-# Phase 6 — offline license verification (a_licensing.py) reuses this same
-# 'cryptography' dependency for its own, separate Ed25519 keypair (signing
-# license keys, not updates). Same fail-closed rule: without it, no license
-# key can ever verify — activation just refuses rather than trusting an
-# unverifiable claim. tools/generate_license.py (seller-only, never shipped
-# to customers) also needs it, to sign licenses offline.
-cryptography    # Ed25519 signature verification for update manifests and license keys
+# Ed25519 signature verification for update manifests and license keys —
+# fail-closed: without it, no update or license ever verifies.
+cryptography

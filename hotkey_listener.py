@@ -57,6 +57,7 @@ def _vk_from_name(name: str):
     name = name.lower()
     single_char_specials = {
         "space": 0x20, "enter": 0x0D, "return": 0x0D, "tab": 0x09, "esc": 0x1B, "escape": 0x1B,
+        "printscreen": 0x2C, "prtscr": 0x2C,  # VK_SNAPSHOT — F4's optional capture key
     }
     if name in single_char_specials:
         return single_char_specials[name]

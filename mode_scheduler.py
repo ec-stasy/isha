@@ -170,8 +170,28 @@ class ModeScheduler:
                 self._check_idle_trigger(index, trigger, idle_seconds)
 
         self._was_on_battery = on_battery
+        self._check_reminders(startup=False)
+
+    def _check_reminders(self, startup: bool) -> None:
+        """F5: the reminders pass rides this same 20 s loop — no second
+        thread. Fired reminders show a calm toast with Snooze/Done; ones
+        missed while Isha was off fire once, marked '(missed)'."""
+        import a_reminders
+        from a_notifications import notify
+        for record, missed in a_reminders.due_reminders(self._config, startup=startup):
+            title = "Reminder (missed)" if missed else "Reminder"
+            reminder_id = record.get("id")
+            config = self._config
+            actions = [("Snooze 10 min", lambda rid=reminder_id: a_reminders.snooze(config, rid)),
+                       ("Done", None)]
+            notify(title, record.get("text", ""), actions=actions)
 
     def _run(self) -> None:
+        # fire anything that came due while Isha was closed, once, at startup
+        try:
+            self._check_reminders(startup=True)
+        except Exception:
+            pass
         while not self._stop_flag.is_set():
             try:
                 self._tick()

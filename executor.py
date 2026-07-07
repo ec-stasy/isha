@@ -95,6 +95,17 @@ def _is_path_trustworthy(path: str) -> bool:
         os.environ.get("APPDATA"),
         os.environ.get("WinDir"),
     ]
+    # %TEMP% lives *inside* LocalAppData on Windows, but a planted file in a
+    # world-of-this-user-writable temp dir is exactly the poisoning scenario
+    # this check exists for — carve it out before the root allow-list runs.
+    temp_dir = os.environ.get("TEMP") or os.environ.get("TMP")
+    if temp_dir:
+        try:
+            if str(resolved).lower().startswith(str(Path(temp_dir).resolve()).lower() + os.sep):
+                return False
+        except OSError:
+            pass
+
     for root in filter(None, allowed_roots):
         try:
             root_resolved = Path(root).resolve()
@@ -262,17 +273,17 @@ def _set_theme(dark: bool) -> ExecutionResult:
 def mute_volume(ir: CommandIR, config: dict) -> ExecutionResult:
     if not IS_WINDOWS:
         return _unsupported_platform("mute_volume")
-    return _volume_key(0xAD)  # VK_VOLUME_MUTE (toggles — see unmute_volume note)
+    # F3: multi-device-aware — behavior chosen by settings.audio.mute_behavior
+    # (default halve_all); degrades to the old media-key toggle without pycaw.
+    import a_audio
+    return a_audio.mute(config)
 
 
 def unmute_volume(ir: CommandIR, config: dict) -> ExecutionResult:
     if not IS_WINDOWS:
         return _unsupported_platform("unmute_volume")
-    # Windows exposes only a single mute-toggle key; without pycaw we can't
-    # guarantee this un-mutes rather than re-mutes. Best effort, and said plainly.
-    result = _volume_key(0xAD)
-    result.message = "Toggled mute (Windows has no dedicated 'unmute' key without the optional pycaw module)."
-    return result
+    import a_audio
+    return a_audio.unmute(config)
 
 
 # ---------------------------------------------------------------------------------------
@@ -329,9 +340,38 @@ def refresh(ir: CommandIR, config: dict) -> ExecutionResult:
 # ---------------------------------------------------------------------------------------
 # browser / search
 
+def _allow_list_gate(url: str, config: dict) -> ExecutionResult:
+    """
+    F1: allow-listed hosts pass silently; anything else needs an explicit
+    affirmative from this call's confirm callback (shown as a quiet prompt,
+    never an alarm). Callers with no callback — schedulers, triggers — get a
+    calm skip, consistent with Track A's rule that background paths never
+    confirm on the user's behalf. Returns None when the open may proceed.
+    """
+    import a_allow_list
+    if a_allow_list.is_allowed(url, config):
+        return None
+    host = a_allow_list.normalize_host(url) or url
+    confirm = _get_confirm_callback()
+    if confirm is None:
+        return ExecutionResult(
+            True,
+            f"Skipped {host} — it's not on your allow list. Open Isha and say "
+            f"'allow website {host}' to let it open automatically.",
+            data={"skipped": "not_allow_listed", "url": url},
+        )
+    if not confirm(CommandIR(action="open_unlisted_url", target=url, params={"host": host})):
+        return ExecutionResult(True, f"Didn't open {host} (not on your allow list, not confirmed).",
+                               data={"skipped": "declined", "url": url})
+    return None
+
+
 def open_url(ir: CommandIR, config: dict) -> ExecutionResult:
     if not ir.target:
         return ExecutionResult(False, "No URL to open.", error="unresolved_target")
+    gate = _allow_list_gate(ir.target, config)
+    if gate is not None:
+        return gate
     opened = webbrowser.open(ir.target)
     if not opened:
         return ExecutionResult(False, f"No browser available to open {ir.target}.", error="no_browser")
@@ -418,10 +458,9 @@ def move_window(ir: CommandIR, config: dict) -> ExecutionResult:
 # reminders / tasks — Phase 1 persists them; a background scheduler is a later phase
 
 def set_reminder(ir: CommandIR, config: dict) -> ExecutionResult:
-    from config_store import save_config
-    config["reminders"].append({"type": "reminder", "target": ir.target, "time": ir.params.get("time")})
-    save_config(config)
-    return ExecutionResult(True, "Reminder saved (no background scheduler yet, so it won't alert you).", data={"target": ir.target})
+    # F5: real records, parsed times, and a scheduler pass that fires them.
+    import a_reminders
+    return a_reminders.set_reminder(ir, config)
 
 
 def schedule_task(ir: CommandIR, config: dict) -> ExecutionResult:
@@ -439,14 +478,8 @@ def add_task(ir: CommandIR, config: dict) -> ExecutionResult:
 
 
 def cancel_task(ir: CommandIR, config: dict) -> ExecutionResult:
-    from config_store import save_config
-    before = len(config["reminders"])
-    config["reminders"] = [r for r in config["reminders"] if r.get("target") != ir.target]
-    save_config(config)
-    removed = before - len(config["reminders"])
-    if removed:
-        return ExecutionResult(True, f"Cancelled {removed} task(s) matching '{ir.target}'.")
-    return ExecutionResult(False, f"No task found matching '{ir.target}'.", error="not_found")
+    import a_reminders
+    return a_reminders.delete_reminder(ir, config)
 
 
 # ---------------------------------------------------------------------------------------
@@ -621,6 +654,11 @@ def _wait_for_new_window(before: set, timeout: float = 3.0):
 
 def _open_website_item(item: dict, config: dict, mode_name: str) -> ExecutionResult:
     url = item.get("url")
+    # F1 gate applies to mode websites too; the dedicated-window fast path
+    # below bypasses open_url, so the check must happen here as well.
+    gate = _allow_list_gate(url, config)
+    if gate is not None:
+        return gate
     if not IS_WINDOWS:
         return open_url(CommandIR(action="open_url", target=url), config)
 
@@ -679,7 +717,7 @@ def _run_mode_script(script: str, config: dict) -> ExecutionResult:
     Track A1 fix: mode scripts are an arbitrary-process-launch primitive
     (config.json is plaintext and user-editable), so this never runs one
     silently. Three gates, all of which must pass:
-      1. settings.allow_mode_scripts must be explicitly on (default off) —
+      1. settings.allow_scripts must be explicitly on (default off) —
          most users never need this, so nobody is exposed by default.
       2. A confirm callback must exist for the calling thread — the CLI and
          palette set one; mode_scheduler's auto-trigger thread never does, so
@@ -693,11 +731,19 @@ def _run_mode_script(script: str, config: dict) -> ExecutionResult:
     if not script:
         return ExecutionResult(True, "No script to run.")
 
-    if not (config.get("settings", {}) or {}).get("allow_mode_scripts", False):
+    # F6: a mode's script field may name a saved script — one level of
+    # indirection, resolved here so the verbatim confirmation below always
+    # shows the real command that would run, never just the name.
+    import a_scripts
+    script = a_scripts.resolve_script_reference(script, config)
+
+    settings = config.get("settings", {}) or {}
+    # v2 key with the v1 name accepted for un-migrated configs handed in directly
+    if not settings.get("allow_scripts", settings.get("allow_mode_scripts", False)):
         return ExecutionResult(
             True,
-            "Mode script skipped (mode scripts are disabled by default — turn on "
-            "'allow mode scripts' in Isha's settings to enable them).",
+            "Script skipped (scripts are disabled by default — turn on "
+            "'allow scripts' in Isha's settings to enable them).",
             data={"skipped": "disabled"},
         )
 
@@ -1120,6 +1166,26 @@ ACTION_HANDLER_MAP = {
     "license_status": license_status,
     "deactivate_license": deactivate_license,
 }
+
+
+def _lazy_handler(module_name, function_name):
+    def _handler(ir, config):
+        import importlib
+        return getattr(importlib.import_module(module_name), function_name)(ir, config)
+    return _handler
+
+
+# Cycle 4 feature actions — lazy so the modules only load when used
+ACTION_HANDLER_MAP.update({
+    "add_allow_site": _lazy_handler("a_allow_list", "add_allow_site"),      # F1
+    "remove_allow_site": _lazy_handler("a_allow_list", "remove_allow_site"),
+    "show_allow_list": _lazy_handler("a_allow_list", "show_allow_list"),
+    "show_reminders": _lazy_handler("a_reminders", "show_reminders"),       # F5
+    "save_script": _lazy_handler("a_scripts", "save_script"),               # F6
+    "run_script": _lazy_handler("a_scripts", "run_script"),
+    "delete_script": _lazy_handler("a_scripts", "delete_script"),
+    "show_scripts": _lazy_handler("a_scripts", "show_scripts"),
+})
 
 
 def execute(ir: CommandIR, config: dict) -> ExecutionResult:

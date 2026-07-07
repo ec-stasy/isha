@@ -1,35 +1,32 @@
 """
-Toast + optional-sound notifications — a thin, lightweight layer with no new
-required dependency. Prefers the tray icon's own balloon/toast (pystray,
-already optional for Phase 2's tray) when the tray app registered one;
-otherwise falls back to a console print plus an optional system beep so
-background events (pomodoro phase changes, auto-triggers) are never
-completely silent, even headless (CLI-only) or before the tray icon exists.
+Notification fan-out — the stable public notify() every background module
+(pomodoro, mode_scheduler, reminders) calls. Cycle 4: when the Qt app is
+running it registers a GUI notifier (services/notifier.py — calm top-right
+toast cards, silent by default); headless/CLI use falls back to a console
+print. The old pystray-balloon path is gone with pystray itself.
 """
 import sys
 
 IS_WINDOWS = sys.platform == "win32"
 
-_tray_icon = None  # set by tray_app.py once its pystray icon exists
+_gui_notify = None  # set by app.py once the Qt notifier exists
 
 
-def register_tray_icon(icon) -> None:
-    global _tray_icon
-    _tray_icon = icon
+def register_gui_notifier(fn) -> None:
+    """fn(title, message, sound=False, actions=None) — must be thread-safe."""
+    global _gui_notify
+    _gui_notify = fn
 
 
-def notify(title: str, message: str, sound: bool = False) -> None:
-    if _tray_icon is not None:
+def register_tray_icon(icon) -> None:  # legacy no-op shim (pystray path removed)
+    pass
+
+
+def notify(title: str, message: str, sound: bool = False, actions=None) -> None:
+    if _gui_notify is not None:
         try:
-            _tray_icon.notify(message, title)
-        except Exception:
-            print(f"[{title}] {message}")
-    else:
-        print(f"[{title}] {message}")
-
-    if sound and IS_WINDOWS:
-        try:
-            import winsound
-            winsound.MessageBeep(winsound.MB_ICONASTERISK)
+            _gui_notify(title, message, sound=sound, actions=actions)
+            return
         except Exception:
             pass
+    print(f"[{title}] {message}")

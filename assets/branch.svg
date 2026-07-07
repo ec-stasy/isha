@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 180" fill="none">
+  <!-- single-weight ink-brush branch entering from the top-right; painted at
+       low opacity by the shell so content always sits above it -->
+  <g stroke="#000000" stroke-width="1.5" stroke-linecap="round" fill="none">
+    <path d="M420 8 C 360 26, 310 44, 258 74 C 224 94, 196 118, 178 148"/>
+    <path d="M330 40 C 314 58, 300 74, 292 96"/>
+    <path d="M262 72 C 246 80, 232 92, 224 104"/>
+    <path d="M380 22 C 372 34, 366 44, 362 56"/>
+  </g>
+  <!-- five-petal blossoms (accent pink) -->
+  <g fill="#C9748A">
+    <g transform="translate(292,100)">
+      <path d="M0-9 C 3-9 5-6 5-3 C 8-4 11-2 11 1 C 11 4 8 6 5 6 C 6 9 4 12 1 12 C -2 12 -4 10 -4 7 C -7 9 -10 7 -10 4 C -10 1 -8-2 -5-2 C -7-5 -5-9 -2-9 Z" opacity="0.85"/>
+      <circle cx="0" cy="1" r="1.6" fill="#8A5563"/>
+    </g>
+    <g transform="translate(224,108) scale(0.8)">
+      <path d="M0-9 C 3-9 5-6 5-3 C 8-4 11-2 11 1 C 11 4 8 6 5 6 C 6 9 4 12 1 12 C -2 12 -4 10 -4 7 C -7 9 -10 7 -10 4 C -10 1 -8-2 -5-2 C -7-5 -5-9 -2-9 Z" opacity="0.8"/>
+      <circle cx="0" cy="1" r="1.6" fill="#8A5563"/>
+    </g>
+    <g transform="translate(362,60) scale(0.7)">
+      <path d="M0-9 C 3-9 5-6 5-3 C 8-4 11-2 11 1 C 11 4 8 6 5 6 C 6 9 4 12 1 12 C -2 12 -4 10 -4 7 C -7 9 -10 7 -10 4 C -10 1 -8-2 -5-2 C -7-5 -5-9 -2-9 Z" opacity="0.75"/>
+      <circle cx="0" cy="1" r="1.5" fill="#8A5563"/>
+    </g>
+    <g transform="translate(178,150) scale(0.9)">
+      <path d="M0-9 C 3-9 5-6 5-3 C 8-4 11-2 11 1 C 11 4 8 6 5 6 C 6 9 4 12 1 12 C -2 12 -4 10 -4 7 C -7 9 -10 7 -10 4 C -10 1 -8-2 -5-2 C -7-5 -5-9 -2-9 Z" opacity="0.85"/>
+      <circle cx="0" cy="1" r="1.6" fill="#8A5563"/>
+    </g>
+    <!-- buds -->
+    <circle cx="252" cy="78" r="3" opacity="0.6"/>
+    <circle cx="308" cy="52" r="2.5" opacity="0.55"/>
+    <circle cx="200" cy="128" r="2.5" opacity="0.55"/>
+  </g>
+</svg>

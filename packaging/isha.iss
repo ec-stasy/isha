@@ -16,7 +16,7 @@
 ;     implemented as a per-user Run registry value (no admin needed).
 
 #define MyAppName "Isha"
-#define MyAppVersion "0.5.0"
+#define MyAppVersion "2.0.0"
 #define MyAppPublisher "Isha"
 #define MyAppURL "https://YOUR-DOMAIN.com"
 #define MyAppExeName "Isha.exe"

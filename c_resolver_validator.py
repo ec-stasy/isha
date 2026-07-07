@@ -192,7 +192,12 @@ def resolve(ir: CommandIR, config: dict = None) -> CommandIR:
         # parser already flagged this command as unactionable; don't do more work
         return ir
 
-    if ir.action in APP_TARGET_ACTIONS:
+    if ir.action == "open_app" and ir.target and str(ir.target).lower() in (config.get("scripts") or {}):
+        # F6: "run backup" — an exact saved-script name wins over app fuzzy
+        # matching (exact only, so no app can be shadowed by accident)
+        ir.action = "run_script"
+        ir.target = str(ir.target).lower()
+    elif ir.action in APP_TARGET_ACTIONS:
         _resolve_app_target(ir, get_app_registry(), aliases)
     elif ir.action in ("open_url", "search"):
         _resolve_url_target(ir, aliases)
@@ -208,12 +213,31 @@ def resolve(ir: CommandIR, config: dict = None) -> CommandIR:
     return ir
 
 
-def validate(ir: CommandIR) -> CommandIR:
+# actions that act on a 0-100 level and may arrive without one (F2)
+LEVELED_ACTIONS = {"set_value"}
+
+
+def validate(ir: CommandIR, config: dict = None) -> CommandIR:
     """Semantic sanity checks on the resolved CommandIR, plus a safety gate for destructive actions."""
     level = ir.params.get("level")
     if isinstance(level, int) and not (0 <= level <= 100):
         ir.warnings.append(f"Level {level} is outside the expected 0-100 range; it will be clamped.")
         ir.params["level"] = max(0, min(100, level))
+
+    # F2: a leveled action with no level gets the user's configured default
+    # instead of erroring out
+    if ir.action in LEVELED_ACTIONS and ir.params.get("level") is None:
+        settings = (config or {}).get("settings", {}) or {}
+        default_level = (settings.get("defaults", {}) or {}).get("level", 50)
+        try:
+            default_level = max(0, min(100, int(default_level)))
+        except (TypeError, ValueError):
+            default_level = 50
+        ir.params["level"] = default_level
+        ir.warnings = [w for w in ir.warnings if w != "No Level Found!"]
+        ir.warnings.append(
+            f"No level given — using your default ({default_level}). "
+            f"Say e.g. '{str(ir.target or 'volume')} 70' for a specific level.")
 
     if ir.action in DESTRUCTIVE_ACTIONS:
         ir.params["requires_confirmation"] = True
@@ -223,5 +247,5 @@ def validate(ir: CommandIR) -> CommandIR:
 
 def resolve_and_validate(ir: CommandIR, config: dict = None) -> CommandIR:
     ir = resolve(ir, config)
-    ir = validate(ir)
+    ir = validate(ir, config)
     return ir

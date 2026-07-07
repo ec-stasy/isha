@@ -344,6 +344,32 @@ VERB_ACTION_MAP = {
     "license status": "license_status",
     "check license": "license_status",
     "deactivate license": "deactivate_license",
+
+    # Cycle 4 F1 — website allow-list. "allow" isn't otherwise a verb, so the
+    # bare form is safe; "show allow list" is a three-word key so it wins over
+    # the one-word "show" (show_window) via longest-phrase matching.
+    "allow": "add_allow_site",
+    "allow website": "add_allow_site",
+    "allow site": "add_allow_site",
+    "disallow": "remove_allow_site",
+    "block website": "remove_allow_site",
+    "block site": "remove_allow_site",
+    "show allow list": "show_allow_list",
+    "show allowed websites": "show_allow_list",
+
+    # Cycle 4 F5 — reminders management
+    "show reminders": "show_reminders",
+    "list reminders": "show_reminders",
+
+    # Cycle 4 F6 — named scripts. Two-word keys only ("save"/"run"/"delete"
+    # are all existing one-word verbs); bare "run <name>" reaches run_script
+    # via the resolver when <name> is a saved script.
+    "save script": "save_script",
+    "run script": "run_script",
+    "delete script": "delete_script",
+    "remove script": "delete_script",
+    "show scripts": "show_scripts",
+    "list scripts": "show_scripts",
 }
 
 # mode mapping
@@ -1158,6 +1184,30 @@ def license_key_shape(tokens: list, action: str) -> CommandIR:
     return commandir_obj
 
 
+# Cycle 4 F6 — "save script <name> as <command...>". The verb ("save script")
+# is already stripped; the first remaining token is the name and everything
+# after an optional "as" is the command, joined verbatim-as-tokenized (same
+# shape pattern as add_alias). Nothing here ever runs the command.
+def save_script_shape(tokens: list, action: str) -> CommandIR:
+    commandir_obj = CommandIR(action=action)
+    rest = [str(t) for t in tokens]
+    if rest and rest[0] in SKIP_WORDS:
+        rest = rest[1:]
+    if len(rest) < 2:
+        commandir_obj.errors.append(
+            "Need a name and a command (e.g. 'save script backup as robocopy …').")
+        return commandir_obj
+    commandir_obj.params["name"] = rest[0]
+    command_tokens = rest[1:]
+    if command_tokens and command_tokens[0] == "as":
+        command_tokens = command_tokens[1:]
+    if not command_tokens:
+        commandir_obj.errors.append("No command to save.")
+        return commandir_obj
+    commandir_obj.params["command"] = " ".join(command_tokens)
+    return commandir_obj
+
+
 # ---------------------------------------------------------------------------------------
 
 # dispatch table: maps each resolved action to its shape function
@@ -1237,6 +1287,16 @@ ACTION_FUNCTION_MAP = {
     "activate_license":        license_key_shape,
     "license_status":          verb_only,
     "deactivate_license":      verb_only,
+
+    # Cycle 4
+    "add_allow_site":          free_target,
+    "remove_allow_site":       free_target,
+    "show_allow_list":         verb_only,
+    "show_reminders":          verb_only,
+    "save_script":             save_script_shape,
+    "run_script":              free_target,
+    "delete_script":           free_target,
+    "show_scripts":            verb_only,
 }
 
 # ---------------------------------------------------------------------------------------

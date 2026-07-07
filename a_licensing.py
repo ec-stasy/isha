@@ -319,10 +319,20 @@ def is_licensed(config: dict) -> bool:
 FREE_ACTIONS = {"open_app", "close_app", "mute_volume", "unmute_volume"}
 FREE_VALUE_TARGETS = {"volume", "brightness"}
 
+# Meta/hygiene actions that must work regardless of license — most obviously
+# activating a license itself (Cycle 4 fix: the gate used to block
+# activate_license, so an unlicensed install could never *become* licensed),
+# plus help, undo of an allowed action, and the support/update paths.
+META_ACTIONS = {
+    "activate_license", "license_status", "deactivate_license",
+    "show_help", "undo_last_action",
+    "report_issue", "send_report", "check_for_updates", "apply_update",
+}
+
 
 def is_action_free_tier(action: str, target) -> bool:
     """True if this resolved action is allowed without a license."""
-    if action in FREE_ACTIONS:
+    if action in FREE_ACTIONS or action in META_ACTIONS:
         return True
     if action in ("increase_value", "decrease_value", "set_value", "toggle_value"):
         return target in FREE_VALUE_TARGETS
