@@ -4,18 +4,24 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>How Isha Works — every feature explained</title>
-  <meta name="description" content="A full walkthrough of everything Isha can do: commands, Modes, the hotkey palette, voice input, aliases, auto-triggers, undo, custom hotkeys, and what's free vs. full.">
+  <meta name="description" content="A full walkthrough of everything Isha can do: commands, Modes, the hotkey palette, voice input, aliases, auto-triggers, undo, and custom hotkeys. All of it free and fully local.">
+  <meta name="theme-color" content="#F7F3EC" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#171412" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3 C 15 3 17 6 17 9 C 21 7 24 10 24 13 C 24 17 20 19 16 18 C 17 22 13 24 10 24 C 6 24 4 21 4 17 C 0 19 -2 15 0 12 C 2 8 6 8 8 10 C 6 5 9 3 12 3 Z' fill='%23C9748A'/%3E%3C/svg%3E">
 </head>
 <body>
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="index.html"><span class="glyph">I</span> Isha</a>
+    <a class="brand" href="index.html">
+      <span class="glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 C 14.6 3.5 16.5 6 16.5 8.6 C 20 6.8 22.6 9.4 22.6 12 C 22.6 15.4 19 17.2 15.6 16.3 C 16.5 19.8 13 21.6 10.4 21.6 C 6.8 21.6 5 18.8 5 15.6 C 1.6 17.4 -0.4 13.8 1.4 11.2 C 3.2 7.6 6.8 7.6 8.6 9.4 C 6.8 4.9 9.4 3.5 12 3.5 Z" fill="#C9748A"/><circle cx="11.6" cy="12.6" r="1.7" fill="#8A5563"/></svg></span>
+      Isha
+    </a>
     <nav>
       <a href="index.html">Home</a>
-      <a href="index.html#pricing">Pricing</a>
+      <a href="index.html#modes">Modes</a>
       <a href="privacy.html">Privacy</a>
-      <a class="btn btn-primary" href="index.html#download">Download free</a>
+      <a class="btn btn-primary" href="index.html#get">Download free</a>
     </nav>
   </div>
 </header>
@@ -23,15 +29,15 @@
 <main class="doc">
   <div class="wrap narrow">
     <h1>How Isha works</h1>
-    <p class="updated">Everything below is real and already in the app — nothing here is a roadmap promise.</p>
+    <p class="updated">Everything below is real and already in the app — nothing here is a roadmap promise. It’s all free and fully local.</p>
 
     <p>Isha is one command brain reachable three ways — type it, press a hotkey, or say it — and it turns plain
-    English (or Hinglish) into an action on your Windows PC. There's no cloud step: parsing, matching, and
+    English (or Hinglish) into an action on your Windows PC. There’s no cloud step: parsing, matching, and
     execution all happen locally.</p>
 
     <h2>The three ways in</h2>
     <ul>
-      <li><strong>Command palette</strong> — a Spotlight-style box on a global hotkey (default configurable in
+      <li><strong>Command palette</strong> — a Spotlight-style box on a global hotkey (configurable in
         Settings). Press it, type, hit enter.</li>
       <li><strong>Custom command hotkeys</strong> — bind any keyboard shortcut directly to any command text
         (e.g. <code>Ctrl+Alt+S</code> → <code>take screenshot</code>). It fires instantly, no palette needed —
@@ -43,98 +49,103 @@
     triggered it.</p>
 
     <h2>Understanding what you type</h2>
-    <p>Isha tokenizes your sentence, strips filler words ("please", "the", "a"), and matches the remaining
-    words against a verb map and a target map — so "open chrome", "launch chrome for me", and "chrome kholo"
+    <p>Isha tokenizes your sentence, strips filler words (“please”, “the”, “a”), and matches the remaining
+    words against a verb map and a target map — so “open chrome”, “launch chrome for me”, and “chrome kholo”
     (Hinglish) can all resolve to the same action. You can also teach it your own words: <strong>aliases</strong>
-    (Settings → Aliases) let you map any nickname to an app, URL, or mode — "my email" → gmail.com, for
+    (Settings → Aliases) let you map any nickname to an app, URL, or mode — “my email” → gmail.com, for
     instance.</p>
 
     <h2>Modes — one word, a whole workspace</h2>
     <p>A Mode bundles apps, websites, a volume level, and even a desktop theme under one name. Say
-    "create study mode chrome, notion and youtube.com", then just say "study mode" to open everything at once,
-    and "study mode off" (or its Hinglish equivalent) to close it all back down. Modes can also capture your
+    “create study mode chrome, notion and youtube.com”, then just say “study mode” to open everything at once,
+    and “study mode off” (or its Hinglish equivalent) to close it all back down. Modes can also capture your
     current window layout and restore it later.</p>
 
     <h2>Auto-triggers</h2>
-    <p>Modes can switch automatically — by time of day, or on an event like unplugging the charger — configured
-    in <code>config.json</code>, checked by a background scheduler. Set it once and it just happens.</p>
+    <p>Modes can switch automatically — by time of day, or on an event like unplugging the charger. Set it once
+    and it just happens, quietly, in the background.</p>
 
     <h2>Safety: confirm &amp; undo</h2>
-    <p>Anything hard to reverse (uninstalling an app, emptying the recycle bin, running a mode's custom script)
+    <p>Anything hard to reverse (uninstalling an app, emptying the recycle bin, running a mode’s custom script)
     asks for confirmation first — Isha never silently does something destructive on your behalf, including
-    when a command fires from an unattended hotkey or scheduled trigger. Made a mistake anyway? Say "undo" and
+    when a command fires from an unattended hotkey or scheduled trigger. Made a mistake anyway? Say “undo” and
     Isha reverts the last reversible action it took.</p>
 
     <h2>Dashboard &amp; Settings</h2>
-    <p>The Dashboard (tray icon → Dashboard, or the palette's Dashboard button) is your at-a-glance home:
-    which Mode is active, your most recent commands, your license status, and one-click quick actions
-    (screenshot, disk space, empty recycle bin, and more). Settings is where you configure everything:
-    aliases, hotkeys, licensing, and general preferences.</p>
+    <p>The Dashboard is your at-a-glance home: which Mode is active, your most recent commands, and one-click
+    quick actions (screenshot, disk space, empty recycle bin, and more). Settings is where you configure
+    everything — aliases, hotkeys, screenshots, notifications, and general preferences.</p>
 
-    <h2>Full command list</h2>
-    <p>Every action below works from the palette, a bound hotkey, or voice. Bold entries are included free in
-    <strong>Isha Lite</strong>; everything else needs a <a href="index.html#pricing">full Isha license</a>.</p>
+    <h2>The full command list</h2>
+    <p>Every action below works from the palette, a bound hotkey, or voice — all of it included, nothing gated.</p>
 
-    <h3 style="margin-top:28px;color:var(--fg);font-size:18px">Apps &amp; system</h3>
+    <h3>Apps &amp; system</h3>
     <ul>
-      <li><strong>Open / close any installed app</strong> — "open chrome", "close spotify"</li>
-      <li><strong>Volume</strong> — set, increase, decrease, mute, unmute — "volume 30", "mute", "turn sound up"</li>
-      <li><strong>Brightness</strong> — set, increase, decrease — "brightness 70", "screen down a bit"</li>
-      <li>Other system toggles — Wi-Fi, Bluetooth, airplane mode, do-not-disturb, night light, dark/light mode</li>
-      <li>Power actions — shut down, restart, sleep, hibernate, lock screen</li>
+      <li>Open / close any installed app — “open chrome”, “close spotify”</li>
+      <li>Volume — set, increase, decrease, mute, unmute — “volume 30”, “mute”, “turn sound up”</li>
+      <li>Brightness — set, increase, decrease — “brightness 70”, “screen down a bit”</li>
+      <li>System toggles — Wi-Fi, Bluetooth, airplane mode, do-not-disturb, night light, dark/light mode</li>
+      <li>Power actions — shut down, restart, sleep, hibernate, lock screen (destructive ones confirm first)</li>
     </ul>
 
-    <h3 style="margin-top:28px;color:var(--fg);font-size:18px">Windows &amp; workspace</h3>
+    <h3>Windows &amp; workspace</h3>
     <ul>
       <li>Focus, maximize, minimize, show, or hide any window by app name</li>
-      <li>Snap, resize, or move a window to a screen position — "snap chrome to the left"</li>
+      <li>Snap, resize, or move a window to a screen position — “snap chrome to the left”</li>
       <li>Modes — create, activate, deactivate, update, delete; per-mode volume, theme, script, and
         captured window layout</li>
+      <li>Website allow-list — allow-listed sites open silently; anything else asks first</li>
     </ul>
 
-    <h3 style="margin-top:28px;color:var(--fg);font-size:18px">Web &amp; search</h3>
+    <h3>Web &amp; search</h3>
     <ul>
-      <li>Open any URL or alias — "open my email"</li>
-      <li>Web search — "search best pizza near me"</li>
+      <li>Open any URL or alias — “open my email”</li>
+      <li>Web search — “search best pizza near me”</li>
     </ul>
 
-    <h3 style="margin-top:28px;color:var(--fg);font-size:18px">Productivity</h3>
+    <h3>Productivity</h3>
     <ul>
-      <li>Reminders and scheduled tasks — "remind me to stretch in 20 minutes"</li>
-      <li>Task list — add / cancel tasks</li>
+      <li>Reminders that actually fire — “remind me to stretch in 20 minutes”</li>
+      <li>Named, saved scripts — run a saved command by name (behind the script security gate)</li>
       <li>Copy or rename a file, uninstall an app</li>
       <li>Clipboard history — view or clear it</li>
       <li>Text snippet expansion</li>
       <li>Pomodoro timer — start and stop</li>
     </ul>
 
-    <h3 style="margin-top:28px;color:var(--fg);font-size:18px">Utilities</h3>
+    <h3>Utilities</h3>
     <ul>
-      <li><strong>Take a screenshot</strong></li>
+      <li>Take a screenshot (configurable folder, window capture, open-after-capture)</li>
       <li>Check disk space</li>
       <li>Check internet connectivity</li>
       <li>Empty the recycle bin</li>
       <li>Undo the last reversible action</li>
     </ul>
 
-    <h2>Isha Lite vs. full Isha</h2>
-    <p>Isha Lite is not a time-limited trial — it's the same installer and the same app, permanently free for
-    the bolded actions above. Activating a license key (Settings → License, or <code>activate license
-    &lt;key&gt;</code> in the palette) unlocks every other action instantly, on this device. Licenses are
-    offline-verified and single-device — see <a href="index.html#pricing">pricing</a> for details.</p>
+    <h2>Free &amp; fully unlocked</h2>
+    <p>There are no tiers and no license keys. Every action above is available the moment you run Isha — no
+    trial timer, no “pro” version, nothing held back. Isha is a one-window desktop app that tucks into your
+    system tray when you’re not using it.</p>
 
     <h2>Privacy</h2>
     <p>No telemetry, no analytics, no account. Read the full <a href="privacy.html">privacy policy</a>.</p>
+
+    <p style="margin-top:36px"><a class="btn btn-primary btn-lg" href="index.html#get">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+      Download Isha — free
+    </a></p>
   </div>
 </main>
 
 <footer class="site">
   <div class="wrap">
-    <div class="brand"><span class="glyph">I</span> Isha</div>
+    <div class="brand">
+      <span class="glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 C 14.6 3.5 16.5 6 16.5 8.6 C 20 6.8 22.6 9.4 22.6 12 C 22.6 15.4 19 17.2 15.6 16.3 C 16.5 19.8 13 21.6 10.4 21.6 C 6.8 21.6 5 18.8 5 15.6 C 1.6 17.4 -0.4 13.8 1.4 11.2 C 3.2 7.6 6.8 7.6 8.6 9.4 C 6.8 4.9 9.4 3.5 12 3.5 Z" fill="#C9748A"/><circle cx="11.6" cy="12.6" r="1.7" fill="#8A5563"/></svg></span>
+      Isha
+    </div>
     <nav>
       <a href="privacy.html">Privacy</a>
       <a href="terms.html">Terms</a>
-      <a href="refund.html">Refunds</a>
       <a href="mailto:support@YOUR-DOMAIN.com">Support</a>
     </nav>
     <div>© <span id="yr">2026</span> Isha.</div>

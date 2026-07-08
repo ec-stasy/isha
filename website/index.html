@@ -4,31 +4,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Isha — a calm, local assistant for Windows</title>
-  <meta name="description" content="Type a command in plain English (or Hinglish) and Windows does it. Open whole workspaces at once with Modes. Fully local — nothing leaves your machine. One-time purchase.">
+  <meta name="description" content="Type or say a command in plain English (or Hinglish) and Windows does it. Open whole workspaces at once with Modes. Fully local — nothing leaves your machine. Free, forever.">
+  <meta name="theme-color" content="#F7F3EC" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#171412" media="(prefers-color-scheme: dark)">
   <meta property="og:title" content="Isha — a calm, local assistant for Windows">
-  <meta property="og:description" content="Plain-English commands, one-command workspaces, fully local. One-time purchase, no subscription.">
+  <meta property="og:description" content="Plain-English commands, one-command workspaces, fully local. Free, forever — no account, no subscription, no telemetry.">
   <meta property="og:type" content="website">
   <link rel="stylesheet" href="styles.css">
-  <!--
-    CHECKOUT: replace the two href="#buy" / data-checkout links below with your
-    real Merchant-of-Record checkout URL (see website/README.md → "Wire up
-    checkout"). For a Lemon Squeezy overlay, also uncomment this one line:
-    <script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
-  -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3 C 15 3 17 6 17 9 C 21 7 24 10 24 13 C 24 17 20 19 16 18 C 17 22 13 24 10 24 C 6 24 4 21 4 17 C 0 19 -2 15 0 12 C 2 8 6 8 8 10 C 6 5 9 3 12 3 Z' fill='%23C9748A'/%3E%3C/svg%3E">
 </head>
 <body>
 
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="#top"><span class="glyph">I</span> Isha</a>
+    <a class="brand" href="#top">
+      <span class="glyph">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 C 14.6 3.5 16.5 6 16.5 8.6 C 20 6.8 22.6 9.4 22.6 12 C 22.6 15.4 19 17.2 15.6 16.3 C 16.5 19.8 13 21.6 10.4 21.6 C 6.8 21.6 5 18.8 5 15.6 C 1.6 17.4 -0.4 13.8 1.4 11.2 C 3.2 7.6 6.8 7.6 8.6 9.4 C 6.8 4.9 9.4 3.5 12 3.5 Z" fill="#C9748A"/><circle cx="11.6" cy="12.6" r="1.7" fill="#8A5563"/></svg>
+      </span>
+      Isha
+    </a>
     <nav>
       <a href="#features">Features</a>
-      <a href="how-it-works.html">How it works</a>
+      <a href="#modes">Modes</a>
       <a href="#privacy">Privacy</a>
-      <a href="#pricing">Pricing</a>
+      <a href="how-it-works.html">How it works</a>
       <a href="#faq">FAQ</a>
-      <a class="btn btn-ghost" href="#download">Download free</a>
-      <a class="btn btn-primary" href="#buy">Get Isha</a>
+      <a class="btn btn-primary" href="#get">Download free</a>
     </nav>
   </div>
 </header>
@@ -37,44 +38,79 @@
 
   <!-- HERO -->
   <section class="hero">
+    <!-- ink-brush blossom branch, from the app's assets/branch.svg -->
+    <svg class="branch-deco" viewBox="0 0 420 180" fill="none" aria-hidden="true">
+      <g stroke="#000" stroke-width="1.5" stroke-linecap="round" fill="none">
+        <path d="M420 8 C 360 26, 310 44, 258 74 C 224 94, 196 118, 178 148"/>
+        <path d="M330 40 C 314 58, 300 74, 292 96"/>
+        <path d="M262 72 C 246 80, 232 92, 224 104"/>
+        <path d="M380 22 C 372 34, 366 44, 362 56"/>
+      </g>
+      <g fill="#C9748A">
+        <g transform="translate(292,100)"><path d="M0-9 C 3-9 5-6 5-3 C 8-4 11-2 11 1 C 11 4 8 6 5 6 C 6 9 4 12 1 12 C -2 12 -4 10 -4 7 C -7 9 -10 7 -10 4 C -10 1 -8-2 -5-2 C -7-5 -5-9 -2-9 Z" opacity=".85"/><circle cx="0" cy="1" r="1.6" fill="#8A5563"/></g>
+        <g transform="translate(224,108) scale(.8)"><path d="M0-9 C 3-9 5-6 5-3 C 8-4 11-2 11 1 C 11 4 8 6 5 6 C 6 9 4 12 1 12 C -2 12 -4 10 -4 7 C -7 9 -10 7 -10 4 C -10 1 -8-2 -5-2 C -7-5 -5-9 -2-9 Z" opacity=".8"/><circle cx="0" cy="1" r="1.6" fill="#8A5563"/></g>
+        <g transform="translate(362,60) scale(.7)"><path d="M0-9 C 3-9 5-6 5-3 C 8-4 11-2 11 1 C 11 4 8 6 5 6 C 6 9 4 12 1 12 C -2 12 -4 10 -4 7 C -7 9 -10 7 -10 4 C -10 1 -8-2 -5-2 C -7-5 -5-9 -2-9 Z" opacity=".75"/><circle cx="0" cy="1" r="1.5" fill="#8A5563"/></g>
+        <g transform="translate(178,150) scale(.9)"><path d="M0-9 C 3-9 5-6 5-3 C 8-4 11-2 11 1 C 11 4 8 6 5 6 C 6 9 4 12 1 12 C -2 12 -4 10 -4 7 C -7 9 -10 7 -10 4 C -10 1 -8-2 -5-2 C -7-5 -5-9 -2-9 Z" opacity=".85"/><circle cx="0" cy="1" r="1.6" fill="#8A5563"/></g>
+        <circle cx="252" cy="78" r="3" opacity=".6"/><circle cx="308" cy="52" r="2.5" opacity=".55"/><circle cx="200" cy="128" r="2.5" opacity=".55"/>
+      </g>
+    </svg>
+
     <div class="wrap">
-      <span class="eyebrow">Windows · fully local · one-time purchase</span>
-      <h1>Your computer, in plain words.</h1>
+      <span class="eyebrow">
+        <svg class="petal" viewBox="0 0 22 22" aria-hidden="true"><path d="M0-9 C 3-9 5-6 5-3 C 8-4 11-2 11 1 C 11 4 8 6 5 6 C 6 9 4 12 1 12 C -2 12 -4 10 -4 7 C -7 9 -10 7 -10 4 C -10 1 -8-2 -5-2 C -7-5 -5-9 -2-9 Z" transform="translate(11,10)" fill="currentColor"/></svg>
+        Windows · fully local · free forever
+      </span>
+      <h1>Your computer, in <span class="soft-accent">plain words.</span></h1>
       <p class="lead">
         Isha turns everyday sentences into real actions on Windows — open apps,
         switch whole workspaces, tidy your desktop. In English or Hinglish.
         Nothing you type ever leaves your machine.
       </p>
       <div class="cta-row">
-        <a class="btn btn-primary btn-lg" href="#buy">Get full Isha — $19 once</a>
-        <a class="btn btn-ghost btn-lg" href="#download">Download Isha Lite — free</a>
+        <a class="btn btn-primary btn-lg" href="#get">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+          Download free
+        </a>
+        <a class="btn btn-ghost btn-lg" href="how-it-works.html">See everything it does</a>
       </div>
-      <p class="fineprint">Windows 10 &amp; 11 · ~30&nbsp;MB · no account, no subscription · Lite includes app open/close + volume/brightness</p>
+      <p class="fineprint">Windows 10 &amp; 11 · ~30&nbsp;MB · no account · no subscription · no telemetry</p>
 
       <!-- terminal demo -->
       <div class="demo" id="how">
-        <div class="bar"><i></i><i></i><i></i></div>
+        <div class="bar"><i></i><i></i><i></i><span class="tag">isha · command palette</span></div>
         <div class="body">
           <div class="u">open chrome and notion</div>
-          <div class="ok">✓ Opened Chrome &nbsp; ✓ Opened Notion</div>
+          <div class="ok">Opened Chrome &nbsp;·&nbsp; Opened Notion</div>
           <div class="u">create study mode chrome, notion and youtube.com</div>
-          <div class="ok">✓ Saved “study” mode — 3 items</div>
+          <div class="ok">Saved “study” mode — 3 items</div>
           <div class="u">study mode</div>
-          <div class="ok">✓ Study mode on — apps &amp; sites launched, volume set</div>
+          <div class="ok">Study mode on — apps &amp; sites launched, volume set</div>
           <div class="u">padhai band karo</div>
           <div class="dim"># Hinglish works too</div>
-          <div class="ok">✓ Study mode off — workspace closed</div>
+          <div class="ok">Study mode off — workspace closed</div>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- TRUST BAR -->
+  <div class="trust">
+    <div class="wrap">
+      <div class="item"><span class="dot"></span> No telemetry, ever</div>
+      <div class="item"><span class="dot"></span> Works fully offline</div>
+      <div class="item"><span class="dot"></span> No account to create</div>
+      <div class="item"><span class="dot"></span> Open threat model</div>
+      <div class="item"><span class="dot"></span> Free &amp; unlocked</div>
+    </div>
+  </div>
+
   <!-- FEATURES -->
   <section id="features">
     <div class="wrap">
       <div class="section-head">
+        <span class="kicker">One brain, three ways in</span>
         <h2>Small commands. Whole workflows.</h2>
-        <p>One brain behind three ways to reach it — a hotkey palette, typed text, or your voice.</p>
+        <p>Reach Isha with a hotkey palette, typed text, or your voice — every path runs the same, so a command behaves identically however you trigger it.</p>
       </div>
       <div class="grid">
         <div class="card">
@@ -85,22 +121,22 @@
         <div class="card">
           <div class="ico">⌨</div>
           <h3>A palette on a hotkey</h3>
-          <p>Press one shortcut anywhere, type what you want, hit enter. Spotlight-style, always a keystroke away, out of your way the rest of the time.</p>
+          <p>Press one shortcut anywhere, type what you want, hit enter. Always a keystroke away, out of your way the rest of the time.</p>
         </div>
         <div class="card">
-          <div class="ico">🌐</div>
+          <div class="ico">あ</div>
           <h3>Plain English &amp; Hinglish</h3>
           <p>“open my email”, “volume 20”, “wifi band karo”. It understands how you actually talk — and you can teach it your own aliases.</p>
         </div>
         <div class="card">
           <div class="ico">⏱</div>
           <h3>Auto-triggers</h3>
-          <p>Slip into Focus mode at 9am, or when you unplug the charger. Set it once; it just happens.</p>
+          <p>Slip into Focus mode at 9&nbsp;am, or when you unplug the charger. Set it once; it just happens, quietly.</p>
         </div>
         <div class="card">
           <div class="ico">↺</div>
           <h3>Undo &amp; confirm</h3>
-          <p>Anything risky asks first. Made a mistake? Say “undo”. Nothing destructive ever runs silently.</p>
+          <p>Anything risky asks first — even from an unattended hotkey or trigger. Made a mistake? Say “undo”. Nothing destructive runs silently.</p>
         </div>
         <div class="card">
           <div class="ico">🎙</div>
@@ -111,104 +147,115 @@
     </div>
   </section>
 
+  <!-- MODES SPOTLIGHT -->
+  <section id="modes" class="soft">
+    <div class="wrap">
+      <div class="split">
+        <div class="copy">
+          <span class="kicker">The headline feature</span>
+          <h2>A whole workspace, in one word.</h2>
+          <p>A Mode bundles apps, websites, a volume level, and even a desktop theme under a single name. Name it once, then summon or dismiss your entire context on demand.</p>
+          <ul class="steps">
+            <li><span class="n">1</span><span><b>Create it once.</b> “create study mode chrome, notion and youtube.com”.</span></li>
+            <li><span class="n">2</span><span><b>Summon it.</b> Say “study mode” — every app and site opens, volume and theme set.</span></li>
+            <li><span class="n">3</span><span><b>Dismiss it.</b> “study mode off” closes it all back down. Or let a trigger do it for you.</span></li>
+          </ul>
+        </div>
+        <div class="mode-visual" aria-hidden="true">
+          <div class="row head"><span class="chip">🌸</span><span class="label">Study mode</span><span class="meta">active</span></div>
+          <div class="row"><span class="chip">🌐</span><span class="label">Chrome</span><span class="meta">opened</span></div>
+          <div class="row"><span class="chip">📝</span><span class="label">Notion</span><span class="meta">opened</span></div>
+          <div class="row"><span class="chip">▶</span><span class="label">youtube.com</span><span class="meta">opened</span></div>
+          <div class="row"><span class="chip">🔉</span><span class="label">Volume</span><span class="meta">set to 30</span></div>
+          <div class="row"><span class="chip">🌗</span><span class="label">Theme</span><span class="meta">dark</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- PRIVACY -->
-  <section id="privacy" class="soft">
+  <section id="privacy">
     <div class="wrap privacy-strip">
       <div class="section-head">
-        <h2>Local by design, not by promise.</h2>
-        <p>Isha makes no network call you didn’t ask for. There is no telemetry, no analytics, no account. The only data we ever store is your name and email — to deliver your license and updates — and it never touches the app.</p>
+        <span class="kicker">Local by design, not by promise</span>
+        <h2>Nothing leaves your machine.</h2>
+        <p>Isha makes no network call you didn’t ask for. No telemetry, no analytics, no account. Parsing, matching, and execution all happen on your PC — and the threat model is public, so you don’t have to take our word for it.</p>
       </div>
       <div class="badge-row">
         <div class="badge"><span class="dot">●</span> No telemetry</div>
         <div class="badge"><span class="dot">●</span> No account required</div>
         <div class="badge"><span class="dot">●</span> Works fully offline</div>
+        <div class="badge"><span class="dot">●</span> Redacted local logs only</div>
         <div class="badge"><span class="dot">●</span> Open threat model</div>
       </div>
     </div>
   </section>
 
-  <!-- FREE DOWNLOAD -->
-  <section id="download" class="soft">
+  <!-- GET / DOWNLOAD -->
+  <section id="get" class="soft">
     <div class="wrap">
       <div class="section-head">
-        <h2>Try Isha Lite — free, forever.</h2>
-        <p>The real app, no trial timer. Opens &amp; closes apps, controls volume and brightness by voice or hotkey. No account, no license key needed.</p>
+        <span class="kicker">Yours to keep</span>
+        <h2>Free. The whole thing.</h2>
+        <p>Not a trial, not a “lite” tier — every feature, unlocked, with no time limit and nothing held back. No account, no license key.</p>
       </div>
-      <div class="price-card">
+      <div class="get-card">
+        <svg class="sprig" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <path d="M6 44 C 14 34, 22 26, 34 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--fg-faint)"/>
+          <path d="M20 30 C 24 28, 27 25, 29 21" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" style="color:var(--fg-faint)"/>
+          <g transform="translate(36,15)" fill="#C9748A"><path d="M0-7 C 2.4-7 4-4.8 4-2.4 C 6.4-3.2 8.8-1.6 8.8 .8 C 8.8 3.2 6.4 4.8 4 4.8 C 4.8 7.2 3.2 9.6 .8 9.6 C -1.6 9.6 -3.2 8 -3.2 5.6 C -5.6 7.2 -8 5.6 -8 3.2 C -8 .8 -6.4-1.6 -4-1.6 C -5.6-4 -4-7 -1.6-7 Z" opacity=".9"/><circle cx="0" cy="1" r="1.4" fill="#8A5563"/></g>
+          <circle cx="22" cy="29" r="2.2" fill="#C9748A" opacity=".6"/>
+        </svg>
         <div class="amount">Free</div>
-        <div class="once">Isha Lite · no time limit</div>
+        <div class="once">no time limit · no account · every feature</div>
         <ul>
-          <li><span class="chk">✓</span> Open / close any app by name</li>
-          <li><span class="chk">✓</span> Volume &amp; brightness control</li>
-          <li><span class="chk">✓</span> Same hotkey palette, plain-English &amp; Hinglish parsing</li>
-          <li><span class="chk">✓</span> One click inside the app to upgrade any time</li>
+          <li><span class="chk">✓</span> Modes, the hotkey palette, and plain-English &amp; Hinglish parsing</li>
+          <li><span class="chk">✓</span> Window management, reminders, clipboard history, Pomodoro</li>
+          <li><span class="chk">✓</span> Optional on-device voice, auto-triggers, custom aliases &amp; hotkeys</li>
+          <li><span class="chk">✓</span> Signature-verified updates, fully offline</li>
         </ul>
-        <!-- DOWNLOAD: replace href with the real release asset URL once uploaded (see packaging/README.md step 4/release checklist). -->
-        <a class="btn btn-primary btn-lg" href="https://github.com/ec-stasy/isha/releases/latest/download/Isha-portable-0.5.0.zip">
-          Download Isha Lite (.zip)
+        <!-- DOWNLOAD: replace href with the real release asset URL once uploaded (see packaging/README.md). -->
+        <a class="btn btn-primary btn-lg" href="https://github.com/ec-stasy/isha/releases/latest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+          Download Isha for Windows
         </a>
-        <p class="fineprint" style="margin-top:16px">Windows 10/11 · unzip and run Isha.exe · unsigned for now — Windows SmartScreen may show a warning; click "More info" → "Run anyway".</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- PRICING -->
-  <section id="pricing">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>One price. Yours to keep.</h2>
-        <p>Buy it once. No subscription, no upsell, no “pro” tier holding features hostage.</p>
-      </div>
-      <div class="price-card" id="buy">
-        <div class="amount">$19 <small>USD</small></div>
-        <div class="once">one-time · lifetime updates for this major version</div>
-        <ul>
-          <li><span class="chk">✓</span> Every feature — Modes, palette, voice, the lot</li>
-          <li><span class="chk">✓</span> Activates on 1 device (deactivate to move it)</li>
-          <li><span class="chk">✓</span> Same installer as Lite — one key unlocks everything</li>
-          <li><span class="chk">✓</span> 14-day no-questions refund</li>
-        </ul>
-        <!-- CHECKOUT: replace href with your MoR checkout URL. For Lemon Squeezy
-             overlay, add class="lemonsqueezy-button" and load lemon.js (see head). -->
-        <a class="btn btn-primary btn-lg" href="https://YOUR-STORE.lemonsqueezy.com/checkout/buy/YOUR-PRODUCT-ID">
-          Buy Isha
-        </a>
-        <p class="fineprint" style="margin-top:16px">Secure checkout via our payment partner. Prices may show in your local currency with tax included.</p>
+        <p class="fineprint" style="margin-top:16px">Windows 10/11 · unzip and run · unsigned for now — SmartScreen may warn; click “More info” → “Run anyway”.</p>
       </div>
     </div>
   </section>
 
   <!-- FAQ -->
-  <section id="faq" class="soft">
+  <section id="faq">
     <div class="wrap">
-      <div class="section-head"><h2>Questions</h2></div>
+      <div class="section-head"><span class="kicker">Good to know</span><h2>Questions</h2></div>
       <div class="faq">
+        <details class="q" open><summary>Is it really free?</summary>
+          <p>Yes — completely, with every feature unlocked and no time limit. There’s no paid tier, no license key, and nothing to activate. Download it and it just works.</p></details>
         <details class="q"><summary>Does Isha send my data anywhere?</summary>
           <p>No. It runs entirely on your PC and makes no network request unless you explicitly ask it to — for example, to check for an update. There’s no analytics or telemetry of any kind. Read our <a href="privacy.html">privacy policy</a> and threat model for the details.</p></details>
         <details class="q"><summary>Which Windows versions are supported?</summary>
-          <p>Windows 10 and Windows 11 (64-bit). Isha is a lightweight background app — it sits in your system tray and uses only tens of megabytes of RAM.</p></details>
-        <details class="q"><summary>Is it a subscription?</summary>
-          <p>No. It’s a one-time purchase. You get updates for the version you bought, and you own your copy.</p></details>
-        <details class="q"><summary>How do I get my copy after buying?</summary>
-          <p>Right after checkout you’ll get an email with your download link and your license key. Open Isha, press the palette hotkey, and type <code>activate license &lt;your key&gt;</code>. That’s it — activation happens offline.</p></details>
-        <details class="q"><summary>Windows warned me about the installer — is it safe?</summary>
-          <p>Newly released installers can trip SmartScreen until they build reputation; a code-signed release clears this. If you ever see a warning, verify you downloaded from this site and continue. See our <a href="terms.html">terms</a>.</p></details>
-        <details class="q"><summary>Can I get a refund?</summary>
-          <p>Yes — 14 days, no questions asked. See the <a href="refund.html">refund policy</a>.</p></details>
-        <details class="q"><summary>What's the difference between Isha Lite and full Isha?</summary>
-          <p>Same installer, same app. Isha Lite (free, no license) opens/closes apps and controls volume &amp; brightness. Activating a license unlocks everything else — Modes, window management, reminders, clipboard history, Pomodoro, voice, and more. See the full list on <a href="how-it-works.html">How it works</a>.</p></details>
+          <p>Windows 10 and Windows 11 (64-bit). Isha is a lightweight app — a calm main window that tucks into your system tray, using only tens of megabytes of RAM.</p></details>
+        <details class="q"><summary>How do I install it?</summary>
+          <p>Download the latest release, unzip it, and run <code>Isha.exe</code> — no installer account or key needed. Because the build isn’t code-signed yet, Windows SmartScreen may show a warning the first time; click “More info” → “Run anyway”.</p></details>
+        <details class="q"><summary>What can it actually do?</summary>
+          <p>Open and close apps, control volume and brightness, manage windows, run Modes, set reminders, expand snippets, take screenshots, and much more — by typing, a hotkey, or voice. See the full list on <a href="how-it-works.html">How it works</a>.</p></details>
+        <details class="q"><summary>Do I need an internet connection?</summary>
+          <p>No. Isha is fully local and works entirely offline. The only time it touches the network is when you explicitly ask it to check for an update or send an issue report you’ve reviewed.</p></details>
       </div>
     </div>
   </section>
 
   <!-- FINAL CTA -->
-  <section>
-    <div class="wrap" style="text-align:center">
-      <h2 style="font-size:clamp(28px,4vw,40px);margin-bottom:16px">Talk to your computer like a person.</h2>
-      <p style="color:var(--fg-muted);font-size:18px;margin-bottom:32px">Calm, fast, and entirely yours.</p>
-      <div class="cta-row" style="justify-content:center">
-        <a class="btn btn-primary btn-lg" href="#buy">Get full Isha — $19 once</a>
-        <a class="btn btn-ghost btn-lg" href="#download">Download Isha Lite — free</a>
+  <section class="soft">
+    <div class="wrap final">
+      <h2>Talk to your computer like a person.</h2>
+      <p class="sub">Calm, fast, fully local — and entirely yours.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg" href="#get">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+          Download free
+        </a>
+        <a class="btn btn-ghost btn-lg" href="how-it-works.html">See how it works</a>
       </div>
     </div>
   </section>
@@ -217,14 +264,19 @@
 
 <footer class="site">
   <div class="wrap">
-    <div class="brand"><span class="glyph">I</span> Isha</div>
+    <div class="brand">
+      <span class="glyph">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5 C 14.6 3.5 16.5 6 16.5 8.6 C 20 6.8 22.6 9.4 22.6 12 C 22.6 15.4 19 17.2 15.6 16.3 C 16.5 19.8 13 21.6 10.4 21.6 C 6.8 21.6 5 18.8 5 15.6 C 1.6 17.4 -0.4 13.8 1.4 11.2 C 3.2 7.6 6.8 7.6 8.6 9.4 C 6.8 4.9 9.4 3.5 12 3.5 Z" fill="#C9748A"/><circle cx="11.6" cy="12.6" r="1.7" fill="#8A5563"/></svg>
+      </span>
+      Isha
+    </div>
     <nav>
+      <a href="how-it-works.html">How it works</a>
       <a href="privacy.html">Privacy</a>
       <a href="terms.html">Terms</a>
-      <a href="refund.html">Refunds</a>
       <a href="mailto:support@YOUR-DOMAIN.com">Support</a>
     </nav>
-    <div>© <span id="yr">2026</span> Isha. Made for Windows.</div>
+    <div>© <span id="yr">2026</span> Isha. Made for Windows · free &amp; fully local.</div>
   </div>
 </footer>
 <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>

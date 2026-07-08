@@ -1,93 +1,70 @@
 # Isha website
 
-A **static** marketing + purchase site — plain HTML/CSS, no framework, no build
-step, no tracker. That means it's fast, cheap (free, in practice), and you can
-host it anywhere. Open `index.html` in a browser right now to preview it.
+A **static** marketing site — plain HTML/CSS, no framework, no build step, no
+tracker. Fast, free to host anywhere. Open `index.html` in a browser to preview.
+
+Isha is **free and fully local** — there is no pricing, no checkout, and no
+license flow. The site's only call to action is "download it."
 
 ```
 website/
-  index.html     landing + pricing + FAQ (the page that sells)
-  privacy.html   privacy policy   ┐  required before most payment
-  terms.html     terms of service ├  providers will approve you —
-  refund.html    refund policy    ┘  don't skip these
-  styles.css     shared styles (calm palette, mirrors the app's ui_theme.py)
+  index.html         landing + features + Modes + privacy + FAQ
+  how-it-works.html  full feature walkthrough
+  privacy.html       privacy policy   ┐ short, because there's little to say —
+  terms.html         terms of use     ┘ free software, no data collected
+  styles.css         shared "Shizuka" styles — mirrors the app's design/tokens.py
+                     (washi/yoru themes, sakura accent, ink-brush blossom motif)
 ```
+
+The palette, type, radii, and blossom artwork are lifted 1:1 from the desktop
+app's `design/tokens.py` and `assets/*.svg`, so the site and the product read as
+the same object in both light and dark.
 
 ---
 
 ## 1. Before you publish — find & replace the placeholders
 
 Every editable spot is written in `[BRACKETS]` or `YOUR-...`. Search the whole
-folder for these and replace:
+folder and replace:
 
 | Placeholder | Put here |
 |---|---|
 | `YOUR-DOMAIN.com` | your real domain (in `mailto:` links) |
-| `YOUR-STORE.lemonsqueezy.com/checkout/buy/YOUR-PRODUCT-ID` | your real checkout URL (see §3) |
-| `$19` | your real price (appears a few times in `index.html`) |
+| `github.com/ec-stasy/isha/releases/latest` | your real download URL, if different |
 | `[YOUR LEGAL NAME / COMPANY]`, `[COUNTRY]`, `[YOUR JURISDICTION]` | your details in the legal pages |
-| `[Lemon Squeezy / Paddle]`, `[MoR privacy policy URL]` | your chosen payment partner |
 | `[DATE]` | today's date on each legal page |
 
-That's the whole checklist. Nothing else needs editing to go live.
+That's the whole checklist.
 
 ---
 
-## 2. Host it (pick one — all have a free tier)
+## 2. Host it (pick one — all free)
 
 **Cloudflare Pages (recommended)** — free, fast globally, free SSL, custom domain:
 1. Push this repo to GitHub (or just the `website/` folder to its own repo).
 2. Cloudflare dashboard → Pages → Connect to Git → pick the repo.
-3. Build command: *(leave blank)*. Output directory: `website` (or `/` if you
-   put these files at the repo root). Deploy.
+3. Build command: *(leave blank)*. Output directory: `website` (or `/` if these
+   files sit at the repo root). Deploy.
 4. Add your custom domain under the Pages project → Custom domains.
 
 **Netlify** — same idea: New site from Git, no build command, publish directory
-`website`. Or literally drag-and-drop the `website/` folder onto app.netlify.com.
+`website`. Or drag-and-drop the `website/` folder onto app.netlify.com.
 
-**GitHub Pages** — free, but put the files at the repo root (or `/docs`), enable
-Pages in repo Settings, and point your domain's DNS at GitHub. Slightly fiddlier
-custom-domain setup than the two above.
+**GitHub Pages** — free; put the files at the repo root (or `/docs`), enable
+Pages in Settings, point your domain's DNS at GitHub. (This repo already has a
+Pages deploy workflow under `.github/`.)
 
-You do **not** need a server for the website itself — it's just files. The only
-server-side piece in this whole project is the optional license webhook, which
-lives in `../server/` and is separate.
+No server is needed — it's just files.
 
 ---
 
-## 3. Wire up checkout
+## 3. The download link
 
-The site is payment-provider-agnostic: it's just a link. Recommended provider is
-a **Merchant of Record (MoR)** so you never touch tax/VAT/GST yourself — see
-`../server/README.md` for the full why and the license-delivery setup. Short
-version for the *website*:
+Keep the actual build **out** of the website repo (it's tens of MB and changes
+every release). Host each release's `IshaSetup-x.y.z.exe` / portable zip on
+GitHub Releases or Cloudflare R2, and point the "Download" buttons in
+`index.html` and `how-it-works.html` at it. The default already points at this
+repo's GitHub Releases "latest" page.
 
-**Lemon Squeezy (simplest):**
-1. Create the product in Lemon Squeezy, set the price.
-2. Copy its "Buy" / checkout URL.
-3. In `index.html`, replace the `href` on both "Buy Isha" buttons with it.
-4. *(Optional, nicer)* For an on-page overlay instead of a redirect:
-   uncomment the `lemon.js` `<script>` in `<head>` and add
-   `class="lemonsqueezy-button"` to the buy button. Then `?embed=1` on the URL.
-
-**Paddle:** create a product, use Paddle.js `Checkout.open({ items: [...] })` on
-the button, or a Payment Link URL. Paddle needs your domain approved first.
-
-**Gumroad (fastest to launch, less polished):** create the product, paste its
-permalink URL on the buttons. Gumroad is also an MoR and can auto-generate &
-email license keys — but its keys aren't Isha's Ed25519 keys, so you'd use the
-manual/webhook signing flow in `../server/` to send the *real* key.
-
-After wiring, click your own buy button end-to-end in the provider's **test
-mode** before going live.
-
----
-
-## 4. A note on the download link
-
-Keep the actual installer **out** of the website repo (it's tens of MB and
-changes every release). Host each release's `IshaSetup-x.y.z.exe` on GitHub
-Releases, Cloudflare R2, or your MoR's "deliverables" attachment, and put that
-URL in the post-purchase email (your MoR sends it automatically once configured).
-The buyer flow is: pay → email with download link + license key → install →
-`activate license <key>` in the app.
+The user flow is simply: **download → unzip / install → run.** No account, no
+key, no activation.
