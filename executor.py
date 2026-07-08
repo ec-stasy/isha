@@ -991,8 +991,6 @@ Comfort: "undo" (reverses your last action), "help" (this list)
 Support: "report issue <optional description>" (saves a local zip, asks before
        sending), "send report" (sends the most recent one), "check updates",
        "install update" (asks to confirm before running an installer)
-License: "activate license <key>" (from your purchase email), "license status",
-       "deactivate license" — Isha works either way, licensing just supports us
 Hotkey: opens the command palette (default ctrl+alt+space)."""
 
 
@@ -1067,29 +1065,6 @@ def apply_update(ir: CommandIR, config: dict) -> ExecutionResult:
 
 
 # ---------------------------------------------------------------------------------------
-# Phase 6 — offline signed licensing. All three actions delegate straight to
-# a_licensing.py; nothing here ever contacts a network (license verification
-# is entirely local, per ROADMAP.md Section 6's "no usage phone-home" design).
-
-def activate_license(ir: CommandIR, config: dict) -> ExecutionResult:
-    import a_licensing
-    key = ir.target or ir.params.get("license_key")
-    if not key:
-        return ExecutionResult(False, "No license key given — try 'activate license <key>'.", error="missing_param")
-    return a_licensing.activate_license(config, str(key))
-
-
-def license_status(ir: CommandIR, config: dict) -> ExecutionResult:
-    import a_licensing
-    return a_licensing.get_license_status(config)
-
-
-def deactivate_license(ir: CommandIR, config: dict) -> ExecutionResult:
-    import a_licensing
-    return a_licensing.deactivate_license(config)
-
-
-# ---------------------------------------------------------------------------------------
 
 ACTION_HANDLER_MAP = {
     "open_app": open_app,
@@ -1161,10 +1136,6 @@ ACTION_HANDLER_MAP = {
     "send_report": send_report,
     "check_for_updates": check_for_updates,
     "apply_update": apply_update,
-
-    "activate_license": activate_license,
-    "license_status": license_status,
-    "deactivate_license": deactivate_license,
 }
 
 
@@ -1195,10 +1166,6 @@ def execute(ir: CommandIR, config: dict) -> ExecutionResult:
     """
     if ir.errors:
         return ExecutionResult(False, "; ".join(ir.errors), error="unresolved")
-
-    import a_licensing
-    if not a_licensing.is_licensed(config) and not a_licensing.is_action_free_tier(ir.action, ir.target):
-        return ExecutionResult(False, a_licensing.free_tier_upgrade_message(), error="upgrade_required")
 
     if ir.params.get("requires_confirmation") and not ir.params.get("confirmed"):
         return ExecutionResult(

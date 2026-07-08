@@ -20,7 +20,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import executor
 import a_updater
-import a_licensing
 from command_ir import CommandIR
 
 
@@ -204,55 +203,6 @@ class AppPathTrustTests(unittest.TestCase):
                 self.assertFalse(executor._is_path_trustworthy(f.name))
             else:
                 self.assertTrue(executor._is_path_trustworthy(f.name))
-
-
-class LicenseAtRestTests(unittest.TestCase):
-    """A5: the stored license record must not sit in config.json as
-    cleartext PII on Windows."""
-
-    def setUp(self):
-        self._old_is_windows = a_licensing.IS_WINDOWS
-        self._old_protect = a_licensing._dpapi_protect
-        self._old_unprotect = a_licensing._dpapi_unprotect
-        # Stand in for real DPAPI (unavailable outside Windows) with a
-        # reversible transform, so this test exercises the *plumbing*
-        # (encrypt-on-store / decrypt-on-load, never touching config.json's
-        # own save/load) rather than the Win32 call itself.
-        a_licensing.IS_WINDOWS = True
-        a_licensing._dpapi_protect = lambda data: bytes(reversed(data))
-        a_licensing._dpapi_unprotect = lambda data: bytes(reversed(data))
-
-    def tearDown(self):
-        a_licensing.IS_WINDOWS = self._old_is_windows
-        a_licensing._dpapi_protect = self._old_protect
-        a_licensing._dpapi_unprotect = self._old_unprotect
-
-    def test_stored_record_has_no_cleartext_email_or_key(self):
-        config = {}
-        record = {"raw": "deadbeef.cafef00d", "email": "buyer@example.com", "license_id": "abc"}
-
-        saved_configs = []
-        original_save = a_licensing.save_config
-        a_licensing.save_config = lambda c: saved_configs.append(json.loads(json.dumps(c)))
-        try:
-            a_licensing._store_license_record(config, record)
-        finally:
-            a_licensing.save_config = original_save
-
-        stored = config["license"]
-        self.assertIn("encrypted", stored)
-        blob = json.dumps(stored)
-        self.assertNotIn("buyer@example.com", blob)
-        self.assertNotIn("deadbeef", blob)
-
-    def test_stored_record_round_trips(self):
-        config = {}
-        record = {"raw": "deadbeef.cafef00d", "email": "buyer@example.com", "license_id": "abc"}
-        a_licensing.save_config = lambda c: None
-        a_licensing._store_license_record(config, record)
-
-        loaded = a_licensing._load_license_record(config)
-        self.assertEqual(loaded, record)
 
 
 if __name__ == "__main__":

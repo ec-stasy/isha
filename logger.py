@@ -18,8 +18,6 @@ SENSITIVE_ACTIONS = {
     "open_url",
     "show_clipboard_history",   # clipboard contents can be anything, including secrets
     "expand_snippet",           # snippet body is user-authored free text
-    "activate_license",         # the key itself, and its decoded payload, carry the buyer's email
-    "license_status",           # status message/data also surfaces the buyer's email
 }
 
 _LOGGER_NAME = "isha.commands"
@@ -89,9 +87,8 @@ def log_command(raw_input: str, tokens: list, ir, resolved_ir=None, execution_re
     # sensitive action, but not the token list or the execution result's
     # *message* string — both can carry the exact same content in the clear
     # right next to the redacted fields, defeating the redaction entirely
-    # (e.g. a license key or search query surviving verbatim in "tokens", or
-    # a buyer's email surviving in an activate_license/license_status
-    # message). Both are now redacted the same way as everything else.
+    # (e.g. a search query surviving verbatim in "tokens"). Both are now
+    # redacted the same way as everything else.
     redacted_result = None
     if execution_result is not None:
         redacted_result = dict(execution_result)

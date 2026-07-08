@@ -335,16 +335,6 @@ VERB_ACTION_MAP = {
     "report bug": "report_issue",
     "send report": "send_report",
 
-    # Phase 6 — offline licensing. Two-word keys only, same reasoning as
-    # Phase 5's support verbs: "activate"/"enter"/"check" are already
-    # one-word verbs (open_app/open_app/search), so a bare one-word entry
-    # here would shadow them for unrelated sentences.
-    "activate license": "activate_license",
-    "enter license": "activate_license",
-    "license status": "license_status",
-    "check license": "license_status",
-    "deactivate license": "deactivate_license",
-
     # Cycle 4 F1 — website allow-list. "allow" isn't otherwise a verb, so the
     # bare form is safe; "show allow list" is a three-word key so it wins over
     # the one-word "show" (show_window) via longest-phrase matching.
@@ -1167,23 +1157,6 @@ def report_issue_shape(tokens: list, action: str) -> CommandIR:
     return commandir_obj
 
 
-# Phase 6 — "activate license <key>". The key (see a_licensing.py) is a single
-# opaque hex.hex token that never contains whitespace by design, so it's
-# joined with no separator rather than a space — a stray space introduced by
-# a bad copy-paste would otherwise silently turn into "keyhalf1 keyhalf2"
-# instead of the real key, and joining with "" recovers the intended string
-# in that case. If reconstruction is still wrong, verification just fails
-# closed like any other malformed key — never a silent wrong activation.
-def license_key_shape(tokens: list, action: str) -> CommandIR:
-    commandir_obj = CommandIR(action=action)
-    remaining = [str(t) for t in tokens if t not in SKIP_WORDS]
-    if not remaining:
-        commandir_obj.errors.append("No License Key Provided!")
-    else:
-        commandir_obj.target = "".join(remaining)
-    return commandir_obj
-
-
 # Cycle 4 F6 — "save script <name> as <command...>". The verb ("save script")
 # is already stripped; the first remaining token is the name and everything
 # after an optional "as" is the command, joined verbatim-as-tokenized (same
@@ -1283,10 +1256,6 @@ ACTION_FUNCTION_MAP = {
     "send_report":             verb_only,
     "check_for_updates":       verb_only,
     "apply_update":            verb_only,
-
-    "activate_license":        license_key_shape,
-    "license_status":          verb_only,
-    "deactivate_license":      verb_only,
 
     # Cycle 4
     "add_allow_site":          free_target,

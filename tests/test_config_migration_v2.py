@@ -33,7 +33,6 @@ def _v1_config() -> dict:
         "reminders": [{"text": "stretch", "time": "2026-07-08T16:00:00"}],
         "triggers": [],
         "snippets": {"sig": "regards"},
-        "license": None,
     }
 
 

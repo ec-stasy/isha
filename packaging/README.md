@@ -70,19 +70,14 @@ powershell -ExecutionPolicy Bypass -File packaging\build.ps1 -SignThumbprint <YO
 This signs both `Isha.exe` and the installer. Verify with
 `signtool verify /pa dist\installer\IshaSetup-<version>.exe`.
 
-## Step 4 — the real product keys (do this ONCE, offline, before your first sale)
+## Step 4 — the real update-signing key (do this ONCE, offline, before your first release)
 
-The shipped code has **placeholder** public keys, so every license and update
-currently fails verification by design. Before selling:
-```
-python tools\generate_license.py keygen
-```
-Paste the **public** half into `a_licensing.py` → `ISHA_LICENSE_PUBLIC_KEY_HEX`.
-Do the same for updates (`tools\sign_manifest.py keygen` → `a_updater.py` →
-`ISHA_UPDATE_PUBLIC_KEY_HEX`). **Keep both private keys offline forever** — a
-password manager or hardware key. Anyone with a private key can mint licenses or
-forge updates. Never commit them. Then rebuild (Step 1) so the release contains
-the real public keys.
+The shipped code has a **placeholder** update public key, so every update
+currently fails verification by design. Before distributing updates, generate the
+real keypair (`tools\sign_manifest.py keygen` → paste the public half into
+`a_updater.py` → `ISHA_UPDATE_PUBLIC_KEY_HEX`). **Keep the private key offline
+forever** — a password manager or hardware key. Anyone with it can forge updates.
+Never commit it. Then rebuild (Step 1) so the release contains the real public key.
 
 ---
 

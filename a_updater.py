@@ -58,7 +58,7 @@ def canonical_manifest_payload(version, url, sha256) -> bytes:
     used to be f"{version}|{url}|{sha256}" — pipe-delimited concatenation is
     not a canonical encoding, so a field containing '|' (a URL certainly can)
     makes the (version, url, sha256) split ambiguous. Canonical, sorted-key
-    JSON has no such ambiguity, and matches a_licensing.py's approach.
+    JSON has no such ambiguity.
     tools/sign_manifest.py (seller-side, offline) must produce these exact
     bytes for a manifest's signature to verify.
     """

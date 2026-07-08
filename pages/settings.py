@@ -199,21 +199,7 @@ class SettingsPage(QWidget):
         privacy_layout.addLayout(row)
         layout.addWidget(privacy)
 
-        # ---- license / updates -------------------------------------------------
-        license_card, license_layout = _card("License")
-        self.license_status = QLabel("")
-        self.license_status.setWordWrap(True)
-        license_layout.addWidget(self.license_status)
-        row = QHBoxLayout()
-        self.license_key = QLineEdit()
-        self.license_key.setPlaceholderText("paste a license key…")
-        row.addWidget(self.license_key, 1)
-        activate = QPushButton("Activate")
-        activate.clicked.connect(self._activate_license)
-        row.addWidget(activate)
-        license_layout.addLayout(row)
-        layout.addWidget(license_card)
-
+        # ---- updates -----------------------------------------------------------
         updates, updates_layout = _card("Updates", "Manual and signature-verified — Isha never downloads anything in the background.")
         row = QHBoxLayout()
         check = QPushButton("Check for updates")
@@ -319,12 +305,6 @@ class SettingsPage(QWidget):
         except OSError:
             pass
 
-    def _activate_license(self) -> None:
-        key = self.license_key.text().strip()
-        if key:
-            self.runner.submit(f"activate license {key}", source="settings")
-            self.license_key.clear()
-
     def _show_doc(self, slug: str) -> None:
         path = DOCS / f"{slug}.md"
         try:
@@ -395,7 +375,3 @@ class SettingsPage(QWidget):
         self.notif_native.blockSignals(True)
         self.notif_native.setChecked(bool(notifications.get("use_windows_native")))
         self.notif_native.blockSignals(False)
-
-        import a_licensing
-        result = a_licensing.get_license_status(self.config)
-        self.license_status.setText(result.message)

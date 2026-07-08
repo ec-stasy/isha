@@ -59,7 +59,6 @@ def _default_config() -> dict:
         "scripts": {},      # F6: name -> {"command": str, "created": ISO}
         "triggers": [],     # auto-trigger records for mode_scheduler.py
         "snippets": {},     # snippet name -> expansion text
-        "license": None,    # see a_licensing.py (DPAPI-wrapped on Windows)
     }
 
 

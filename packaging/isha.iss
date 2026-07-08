@@ -71,6 +71,6 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName} now"; \
   Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-; Leave user data (%APPDATA%\Isha: config, license, logs) in place on uninstall
-; by default — do NOT auto-delete it, so a reinstall keeps the user's modes and
-; license. A user who wants a clean wipe can delete %APPDATA%\Isha by hand.
+; Leave user data (%APPDATA%\Isha: config, logs) in place on uninstall by
+; default — do NOT auto-delete it, so a reinstall keeps the user's modes and
+; settings. A user who wants a clean wipe can delete %APPDATA%\Isha by hand.

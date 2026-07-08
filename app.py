@@ -234,11 +234,6 @@ def main() -> None:
     clipboard = get_clipboard_history()
     clipboard.start()
 
-    import a_licensing
-    if not a_licensing.is_licensed(config):
-        notifier.notify("Isha", "Not activated yet — Isha works the same either way. "
-                        "Type 'activate license <key>' if you have a purchase email.")
-
     window.show()
 
     if not settings.get("onboarded"):

@@ -123,28 +123,11 @@ def _show_onboarding_if_first_run(config: dict) -> None:
     save_config(config)
 
 
-def _show_license_reminder_if_unlicensed(config: dict) -> None:
-    """
-    One-time-per-run, non-blocking reminder — Isha never locks features behind
-    a license (ROADMAP.md Section 6 explicitly rejects over-engineered
-    anti-piracy at this price point), so this only ever informs, never stops
-    anyone from using the app.
-    """
-    import a_licensing
-    if not a_licensing.is_licensed(config):
-        print(
-            "Isha isn't activated yet — it works the same either way. Got a purchase "
-            "email? Run 'activate license <key>' any time. ('license status' checks "
-            "anytime; nothing here is required.)\n"
-        )
-
-
 def main() -> None:
     config = load_config()
     import a_updater
     a_updater.cleanup_stale_update_dirs()
     _show_onboarding_if_first_run(config)
-    _show_license_reminder_if_unlicensed(config)
 
     while True:
         try:

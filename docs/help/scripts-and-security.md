@@ -19,7 +19,7 @@ The same idea runs through the rest of Isha:
   `evil.com/?q=youtube.com` can never ride on your `youtube.com` entry.
 - **App launches** are re-validated at launch time; a poisoned cache file
   can't make "open chrome" start something else.
-- **Updates and licenses** are signature-checked and fail closed.
+- **Updates** are signature-checked and fail closed.
 - **Logs are redacted** and stay on this machine; the config file is
   owner-only.
 

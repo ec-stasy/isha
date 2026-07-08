@@ -51,7 +51,7 @@ def main() -> None:
     # 20 headless pipeline commands (no Qt involved)
     from main import process_command_safe
     commands = ["help", "show allow list", "show reminders", "show scripts",
-                "check disk space", "license status", "show clipboard history",
+                "check disk space", "check internet", "show clipboard history",
                 "allow website example.com", "disallow example.com", "undo"] * 2
     t0 = time.perf_counter()
     for command in commands:
