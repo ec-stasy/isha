@@ -19,6 +19,6 @@ Pillow          # screenshot capture (a_screenshot.py)
 # vosk            # offline speech recognition model (~50MB); download separately
 # sounddevice     # microphone capture for voice input
 
-# Ed25519 signature verification for update manifests and license keys —
-# fail-closed: without it, no update or license ever verifies.
+# Ed25519 signature verification for update manifests —
+# fail-closed: without it, no update ever verifies.
 cryptography

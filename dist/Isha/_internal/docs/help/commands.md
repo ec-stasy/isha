@@ -41,6 +41,5 @@ always shows the exact command first.
 ## Aliases & snippets
 `alias browser as chrome` · manage snippets in Customization.
 
-## Updates, reports, license
-`check updates` · `install update` · `report issue` · `activate license <key>` ·
-`license status`
+## Updates and reports
+`check updates` · `install update` · `report issue`
