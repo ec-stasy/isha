@@ -2028,3 +2028,135 @@ verbs confirmed dead-ended through the full `process_command_safe` pipeline;
 all functional commands unaffected. Remaining owner steps reduce to: real
 update-signing keypair, code-signing cert, hosting. No payment/MoR/webhook
 work remains — the product ships free.
+
+---
+---
+
+# Cycle 6 — Field-Trial Fixes (2026-07-08)
+
+> **Purpose.** The first real field trial on Windows (log:
+> `docs/trial_info/commands.jsonl`, 148 commands over 2026-07-07/08) plus a
+> manual UI walkthrough surfaced ~27 functional and ~27 UI defects. This cycle
+> is one focused repair-and-polish pass: diagnose each failure from the log
+> evidence, fix the root cause (not the symptom), and reship as a new
+> packaged .exe. No new feature tracks; the deliverable is "the things the
+> product already claims to do, actually working."
+
+## A. Root-cause diagnosis (from the trial log)
+
+| # | Symptom (log line) | Root cause |
+|---|---|---|
+| A1 | "open vs code" launched `od.exe` (#123), "open calculator" launched `at.exe` (#135), "open file explorer" launched `ex.exe` (#130), "open wikipedia" launched `IEDIAGCMD.EXE` (#129) | `app_registry` merges every `.exe` on PATH (Git's `usr\bin` junk: `od`, `ex`, `at`, `sed`, ...) into the fuzzy-match pool, and `WRatio` gives short candidates huge partial-match scores. Fuzzy matching must only rank *real installed apps* (Start-Menu / App-Paths entries), with a scorer that can't let a 2-letter PATH stub beat a real name; PATH exes stay exact-match-only. |
+| A2 | "open obsidian" (D:\ObsidianVault) and "open vs code" (D:\VS Code) refused as `untrusted_path` (#124, #148) | Track A4's `_is_path_trustworthy` allow-list only trusts Program Files / AppData / Windows / PATH dirs. Legitimate installs on other drives (D:\) are refused. Fix: trust any *existing* `.exe` outside temp/downloads; the honest boundary (THREAT_MODEL) is "code already running as this user", and a same-user cache poisoner can already edit config.json. Temp/Downloads stay refused. |
+| A3 | "open settings" launched `CameraSettingsUIHost.exe` (#121), "open camera" hit ms-settings/camera-URI cache refusals, "open recycle bin" unresolved (#120) | No concept of *system utilities*. URI targets (`ms-settings:`, `microsoft.windows.camera:`, `shell:RecycleBinFolder`) are not files, so both resolution and the trust check reject them. Fix: a curated built-in utilities table (settings, camera, recycle bin, explorer, calculator, task manager, control panel, snipping tool, terminal, ...) resolved *before* fuzzy app matching and launched via `os.startfile`, never through the file-trust path. |
+| A4 | "open github" opened bare Chrome (#127) | The Start-Menu scan keeps only `.lnk` Targetpath and drops Arguments — a Chrome/Edge web-app shortcut is `chrome_proxy.exe --profile-directory=... --app-id=...`, so the app id was lost. Fix: registry entries carry `args`; `open_app` launches `[path, *args]`. |
+| A5 | "open wikipedia" launched `iediag` (#129) | After app-match failure there is no website fallback for `open_app`. Fix: expanded built-in site table + "no confident app match, known site, open as URL" fallback, so "open wikipedia" works without ".com". |
+| A6 | "set volume to 30" crashed: `'AudioDevice' object has no attribute 'Activate'` (#14, #111-113); the same crash aborted mode activation (#141) | The installed pycaw's `GetSpeakers()` returns an `AudioDevice` wrapper; the COM interface hangs off `._dev`. `executor._set_volume_level` calls `.Activate` directly. Fix: dual-path activation helper shared by executor + `a_audio`; also make `_apply_mode_system_state` exception-proof per item (the volume crash also killed theme application — the actual cause of "mode theme never applies"). |
+| A7 | "volume 30/50/70", "volume level to 10" gave No Action Found (#8, #114-117) | Parser has no verb-less grammar. Fix: fallback pass — a SYSTEM_TARGET token (+ optional level) with no verb is a `set_value`. |
+| A8 | "aavaz band karo" tried to close an app named "aavaz" (#110) | Hinglish gap: `band karo` = close_app wins. Fix: normalize aavaz/awaaz/awaz spellings and add multi-word mute/unmute/volume phrases ahead of the close-app verb. |
+| A9 | "delete last screenshot" said "No reminder matching 'last'" (#107) | `delete` falls through to cancel_task and `screenshot` (a verb word) is filtered out of the target. Fix: real contextual actions — `delete_last_screenshot` / `open_last_screenshot` (+ cancel_task routing when the target mentions screenshots), recycle-bin (undoable) delete of the newest file in the screenshots folder. |
+| A10 | "set reminder to say hi at 2:42 pm" created title "say hi pm" with no time | The tokenizer strips `:` ("2:42" becomes 242, an invalid clock) and the detached "pm" leaks into the title. Fix: keep colons between digits in `input_processor`, join `<time> am/pm` and `<int> am/pm` pairs in the reminder shape, and accept them in `a_reminders`. |
+| A11 | "study mode layout" found no windows to capture even with windows open (#140) | Windows are matched by *title substring*, which fails whenever the window title does not contain the registry name (VS Code, PWAs, notepad's document-first titles). Fix: match by process image name (hwnd to pid to exe stem) with title fallback, for both capture and restore. |
+| A12 | Theme did not change on mode activate (#141 + user report) | Two causes: A6's crash aborted the handler before the theme step, and the registry write never broadcasts `WM_SETTINGCHANGE ImmersiveColorSet`, so running apps don't repaint. Fix both. |
+| A13 | "check internet" only says "looks good" | It was only a TCP probe. Fix: real download/upload measurement (Cloudflare speed endpoints, user-triggered only) + a live speedometer gauge in the UI while the test runs. |
+| A14 | Voice input demands vosk + a manual model download | Replace Vosk entirely with an online speech API (SpeechRecognition + bundled sounddevice capture, no user downloads), a one-time "voice uses the internet" notice, and no install prompts anywhere. |
+| A15 | Restart / empty-recycle-bin confirmations say the action "can't be *easily* undone" | Wrong wording for irreversible actions. Fix: per-action confirmation copy — restart/shutdown/recycle-bin explicitly say the action **cannot be undone**. |
+| A16 | Suggestions while typing are mostly junk | The same PATH pollution as A1 feeds raw registry keys into the suggest list. Fix: suggest from curated sources only (Start-Menu/App-Paths apps with their exe names shown, modes, aliases, utilities, known sites, command templates), and suppress the dropdown entirely while voice is capturing. |
+
+## B. Work plan
+
+1. **Resolution & launching** — registry `source`/`args` fields (cache schema
+   bump), curated `SYSTEM_UTILITIES`, PATH-exact/fuzzy-curated split, new
+   scorer with a short-name guard, website fallback, URI launching, relaxed
+   trust check (A1-A5). Websites open in the existing browser window
+   (default `webbrowser.open`); the dedicated-window mode tracking becomes
+   opt-in (`settings.web.dedicated_windows`).
+2. **Volume** — pycaw dual-path activation, `a_audio` endpoint-enumeration
+   fix, verb-less volume grammar, Hinglish phrases, per-device volume API
+   (`list_output_devices` / `set_device_volume`) with persisted per-device
+   levels keyed by endpoint id (so future reconnects of the same device are
+   remembered automatically) (A6-A8).
+3. **Reminders** — tokenizer colon fix, am/pm joining, title cleanup, plus
+   UI edit-time support (A10).
+4. **Modes** — exception-proof system-state application, theme broadcast,
+   process-name window matching (A11, A12).
+5. **Voice** — `a_voice_input` rewritten around sounddevice capture +
+   Google Web Speech via the `SpeechRecognition` package (bundled in the
+   .exe; nothing to download), silence-based stop, one-time online notice,
+   `voice_controller` simplified (no partials — one final transcript),
+   suggestion suppression while listening (A14, A16).
+6. **Internet speed** — `a_check_internet.speed_test()` with a progress
+   listener hook; the executor reports real down/up Mbps; the dashboard
+   shows an animated speedometer dialog while the test runs (A13).
+7. **Contextual actions** — `delete_last_screenshot` (recycle-bin delete),
+   `open_last_screenshot`, cancel_task routing (A9).
+8. **Confirmation copy** — per-action irreversibility wording in
+   `quiet_prompt` + the CLI (A15).
+9. **UI overhaul** — dashboard (centered command bar Claude-style, modern
+   SVG mic, no clear button, scrollable 15-minute recent list, pencil-icon
+   customize, logs card removed, three recent-mode cards), modes page
+   (accent-colored names, list-first sectioning, add-card moved below,
+   no-volume hint), reminders page (no checkboxes, sectioned, edit time),
+   customization page (General + Screenshot settings moved here, volume
+   mode dropdown with a per-device "Individual" list, quick-actions
+   name/action table), settings page (Obsidian-style rows with real
+   descriptions, Appearance moved here, app-wide font-size setting,
+   notification style dropdown, renamed & relocated "result display
+   duration"), and dedicated Privacy / Updates / Help pages with full
+   explanations. Global: visible checkbox ticks, larger type/icon scale,
+   roomier paddings.
+10. **Ship** — run tests + manual verification, rebuild `dist/Isha` via
+    PyInstaller, zip as the new portable build, push to `sj`.
+
+## C. Status — ✅ complete (2026-07-08, shipped as v2.1.0)
+
+Every item in Section B shipped. Test suite: **64 passed**. Verified directly
+on the real machine (not just unit tests):
+
+- **Resolution (A1-A5)** — replayed every failing trial command through the
+  real pipeline against the live app registry: "open vs code" → the actual
+  `D:\VS Code\...\Code.exe`, "open obsidian" → `D:\ObsidianVault\Obsidian.exe`
+  (trust check now passes), "open settings/camera/recycle bin" → the correct
+  `ms-settings:` / `microsoft.windows.camera:` / `shell:RecycleBinFolder`
+  URIs, "open github" → `chrome_proxy.exe --app-id=…` (the installed web app,
+  args preserved), "open wikipedia" → https://www.wikipedia.org, "open
+  calculator" → the Calculator app, "open file explorer" → explorer.exe.
+  None of the PATH junk (`od`, `at`, `ex`, `iediag`) can win a fuzzy match
+  anymore (registry: 1013 entries, 103 curated fuzzy-matchable).
+- **Volume (A6-A8)** — the exact pycaw call that crashed the trial now works
+  (dual-path `Activate`); found and fixed a *second* pycaw incompatibility
+  while verifying: `AudioDeviceState` is an enum in newer builds, so the old
+  `state != 1` check filtered every device out (this is why multi-device mute
+  always fell back to the media key). Device enumeration now returns the real
+  devices ("Speaker (Realtek(R) Audio)", a cast target, …). "volume 70",
+  bare "volume", "volume level to 10", "aavaz band karo/kar do" all parse.
+- **Reminders (A10)** — "set reminder to say hi at 2:42 pm" → title "say hi",
+  time `2:42pm` → correct datetime; "at 2 pm" (detached am/pm) also works.
+  Reminders page has inline "edit time" with natural-language re-parsing.
+- **Contextual (A9)** — "delete last screenshot" AND "delete the last
+  screenshot" both resolve to the recycle-bin (recoverable) delete;
+  "open last screenshot" opens the newest capture.
+- **Speed test (A13)** — real run measured 29.3 Mbps down / 28.4 Mbps up with
+  310 live progress events feeding the new speedometer dialog.
+- **Voice (A14)** — sounddevice + SpeechRecognition bundled (voice reports
+  available with zero downloads); one-time online notice wired into the mic;
+  Vosk model plumbing fully removed.
+- **UI** — all nine pages (incl. the new Privacy / Updates / Help pages)
+  construct and render under both themes and the new font-scale setting;
+  full app boots and runs (verified live).
+
+Notable extra fixes found while verifying (beyond the reported list):
+- `AudioDeviceState` enum bug above (root cause of several mute oddities).
+- Start-Menu scan now ignores uninstaller/readme shortcuts and non-exe
+  targets, and runs under its own COM initialization (the registry warmup
+  thread previously depended on ambient COM state).
+- The app-registry disk cache got a schema version; every pre-Cycle-6 cache
+  (which lacked `source`/`args` and contained the poisoned `camera` →
+  CameraSettingsUIHost entries) is invalidated automatically on first run.
+- `logger`-adjacent: greeting words ("hi") are no longer stripped from
+  reminder bodies mid-sentence.
+
+Packaging: version bumped to **2.1.0**; `requirements.txt` and
+`packaging/isha.spec` now include `sounddevice` + `SpeechRecognition` and the
+new SVG assets (mic, mic_active, check_light, check_dark); rebuilt
+`dist/Isha` one-folder bundle + portable zip via PyInstaller.

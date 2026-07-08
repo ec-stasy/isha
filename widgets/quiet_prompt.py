@@ -13,6 +13,37 @@ from PySide6.QtWidgets import (
 )
 
 
+# Cycle 6 A15: per-action confirmation copy. Irreversible actions must say
+# so plainly — the old generic "can't be easily undone" implied a restart or
+# an emptied recycle bin could somehow be undone.
+_ACTION_MESSAGES = {
+    "restart": ("Restart this PC?",
+                "This restarts Windows right away. Unsaved work in open apps may be lost, "
+                "and a restart cannot be undone."),
+    "shutdown": ("Shut down this PC?",
+                 "This shuts Windows down right away. Unsaved work in open apps may be "
+                 "lost, and a shutdown cannot be undone."),
+    "hibernate": ("Hibernate this PC?",
+                  "Windows will save the current session to disk and power off. Your work "
+                  "is preserved, but anything mid-download or mid-call will pause."),
+    "empty_recycle_bin": ("Empty the Recycle Bin?",
+                          "This permanently deletes everything in the Recycle Bin. "
+                          "Once emptied, those files cannot be recovered — this cannot be undone."),
+    "uninstall_app": ("Open the uninstaller?",
+                      "Isha will open Windows Settings so you can uninstall it there — "
+                      "nothing is removed until you confirm inside Settings."),
+    "delete_mode": ("Delete this mode?",
+                    "The mode's saved apps, websites and settings are removed. You can "
+                    "always create it again, but its configuration is gone."),
+    "send_report": ("Send this report?",
+                    "The report zip leaves this machine and is uploaded to Isha's intake "
+                    "server. Nothing is ever sent without this confirmation."),
+    "apply_update": ("Install the update?",
+                     "The downloaded, signature-verified installer will run now and may "
+                     "restart Isha when it finishes."),
+}
+
+
 def _message_for(resolved_ir) -> tuple:
     """(title, body) in plain calm sentences for a resolved CommandIR."""
     action = getattr(resolved_ir, "action", "") or ""
@@ -23,6 +54,8 @@ def _message_for(resolved_ir) -> tuple:
             f"Isha is about to run:\n\n{target}\n\nScripts run with your permissions — "
             "only continue if you recognize this command.",
         )
+    if action in _ACTION_MESSAGES:
+        return _ACTION_MESSAGES[action]
     name = target if isinstance(target, str) else (target or {}).get("name") if isinstance(target, dict) else None
     name = name or action.replace("_", " ")
     return ("Just checking", f"“{action.replace('_', ' ')}” on “{name}” can’t be easily undone. Continue?")

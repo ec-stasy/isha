@@ -104,3 +104,91 @@ def take_screenshot(ir=None, config: dict = None) -> ExecutionResult:
     suffix = " and opened it" if opened else ""
     return ExecutionResult(True, f"Screenshot saved to {path}{suffix}.",
                            data={"path": str(path), "opened": opened})
+
+
+# ---------------------------------------------------------------------------
+# contextual actions (Cycle 6 A9): "delete the last screenshot I took",
+# "open the last screenshot"
+
+def last_screenshot_path(config: dict = None):
+    """Newest image in the screenshots folder, or None."""
+    try:
+        directory = screenshots_dir(config)
+    except OSError:
+        return None
+    newest, newest_mtime = None, 0
+    try:
+        for entry in directory.iterdir():
+            if entry.suffix.lower() not in (".png", ".jpg", ".jpeg", ".bmp"):
+                continue
+            try:
+                mtime = entry.stat().st_mtime
+            except OSError:
+                continue
+            if mtime > newest_mtime:
+                newest, newest_mtime = entry, mtime
+    except OSError:
+        return None
+    return newest
+
+
+def _send_to_recycle_bin(path: Path) -> bool:
+    """Recycle-bin (recoverable) delete via SHFileOperationW — never a hard delete."""
+    import ctypes
+    from ctypes import wintypes
+
+    FO_DELETE = 3
+    FOF_ALLOWUNDO, FOF_NOCONFIRMATION, FOF_SILENT = 0x40, 0x10, 0x4
+
+    class SHFILEOPSTRUCTW(ctypes.Structure):
+        _fields_ = [
+            ("hwnd", wintypes.HWND),
+            ("wFunc", ctypes.c_uint),
+            ("pFrom", ctypes.c_wchar_p),
+            ("pTo", ctypes.c_wchar_p),
+            ("fFlags", ctypes.c_uint),
+            ("fAnyOperationsAborted", wintypes.BOOL),
+            ("hNameMappings", ctypes.c_void_p),
+            ("lpszProgressTitle", ctypes.c_wchar_p),
+        ]
+
+    op = SHFILEOPSTRUCTW(
+        hwnd=None, wFunc=FO_DELETE,
+        pFrom=str(path) + "\0\0",  # double-NUL-terminated list
+        pTo=None, fFlags=FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_SILENT,
+        fAnyOperationsAborted=False, hNameMappings=None, lpszProgressTitle=None,
+    )
+    return ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op)) == 0
+
+
+def delete_last_screenshot(config: dict = None) -> ExecutionResult:
+    path = last_screenshot_path(config)
+    if path is None:
+        return ExecutionResult(False, "No screenshots found to delete.", error="not_found")
+    if IS_WINDOWS:
+        try:
+            if _send_to_recycle_bin(path):
+                return ExecutionResult(
+                    True, f"Moved {path.name} to the Recycle Bin (recoverable from there).",
+                    data={"path": str(path)})
+        except Exception:
+            pass
+        return ExecutionResult(False, f"Couldn't delete {path.name}.", error="delete_failed")
+    try:
+        path.unlink()
+        return ExecutionResult(True, f"Deleted {path.name}.", data={"path": str(path)})
+    except OSError as e:
+        return ExecutionResult(False, f"Couldn't delete {path.name}: {e}", error="delete_failed")
+
+
+def open_last_screenshot(config: dict = None) -> ExecutionResult:
+    path = last_screenshot_path(config)
+    if path is None:
+        return ExecutionResult(False, "No screenshots found to open.", error="not_found")
+    if not IS_WINDOWS:
+        return ExecutionResult(True, f"Latest screenshot: {path}", data={"path": str(path)})
+    try:
+        os.startfile(str(path))
+        return ExecutionResult(True, f"Opened {path.name}.", data={"path": str(path)})
+    except OSError as e:
+        return ExecutionResult(False, f"Couldn't open {path.name}: {e}", error="open_failed")

@@ -36,10 +36,14 @@ _project_root = os.path.dirname(SPECPATH)
 _optional = [
     "PIL", "PIL.Image", "PIL.ImageDraw", "PIL.ImageGrab",
     "win32gui", "win32con", "win32clipboard", "win32api", "win32process",
-    "pywintypes", "pythoncom",
+    "win32com", "win32com.client", "pywintypes", "pythoncom",
     "pycaw", "comtypes",
     "rapidfuzz",
     "cryptography", "cryptography.hazmat.primitives.asymmetric.ed25519",
+    # Voice (Cycle 6): the online pipeline is small enough to bundle —
+    # sounddevice for mic capture, SpeechRecognition for the web speech API.
+    # (The old Vosk offline model approach is gone; nothing to download.)
+    "sounddevice", "speech_recognition",
 ]
 hiddenimports = []
 for mod in _optional:
@@ -48,14 +52,13 @@ for mod in _optional:
     except Exception:
         hiddenimports.append(mod)
 
-# Voice is a heavy optional module (vosk + sounddevice + a downloaded model).
-# It is intentionally NOT bundled by default — it stays a separate opt-in
-# install so a plain copy never pays ~50MB+ for it. To ship voice, add
-# "vosk", "sounddevice" to _optional above and bundle the model as a data file.
-
 datas = [
     (os.path.join(_project_root, "assets", "branch.svg"), "assets"),
     (os.path.join(_project_root, "assets", "sprig.svg"), "assets"),
+    (os.path.join(_project_root, "assets", "mic.svg"), "assets"),
+    (os.path.join(_project_root, "assets", "mic_active.svg"), "assets"),
+    (os.path.join(_project_root, "assets", "check_light.svg"), "assets"),
+    (os.path.join(_project_root, "assets", "check_dark.svg"), "assets"),
     (os.path.join(_project_root, "design", "theme.qss"), "design"),
     (os.path.join(_project_root, "docs", "help"), os.path.join("docs", "help")),
 ]

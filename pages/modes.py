@@ -1,10 +1,11 @@
 """
-Modes page (§6.1) — a card per mode: activate toggle, app/website chips with
-inline add/remove, volume/theme rows, script row (raw or a saved script
-name, with the allow_scripts state visible), triggers list (finally
-UI-editable), and a quiet delete. Structural edits go through the runner so
-they behave exactly like typed commands; small field edits mutate config
-directly like the old settings window did.
+Modes page (§6.1, reworked in Cycle 6) — the list of existing modes comes
+first as its own clearly-separated section (accent-colored names), and the
+"Add a new mode" card sits *below* the list in its own section so it never
+crowds the top edge. Modes without a configured volume say plainly that the
+current system volume just stays as it is. Structural edits go through the
+runner so they behave exactly like typed commands; small field edits mutate
+config directly.
 """
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -13,6 +14,20 @@ from PySide6.QtWidgets import (
 
 from config_store import save_config
 from shell.main_window import make_scroll_area
+
+
+def _section_label(text: str) -> QLabel:
+    label = QLabel(text)
+    label.setProperty("class", "subtitle")
+    label.setStyleSheet("font-weight: 600; margin-top: 8px;")
+    return label
+
+
+def _divider() -> QFrame:
+    line = QFrame()
+    line.setProperty("class", "hline")
+    line.setFixedHeight(1)
+    return line
 
 
 class ModesPage(QWidget):
@@ -25,8 +40,8 @@ class ModesPage(QWidget):
         body = QWidget()
         body.setObjectName("pageBody")
         layout = QVBoxLayout(body)
-        layout.setContentsMargins(32, 28, 32, 24)
-        layout.setSpacing(12)
+        layout.setContentsMargins(36, 30, 36, 26)
+        layout.setSpacing(14)
 
         title = QLabel("Modes")
         title.setProperty("class", "title")
@@ -35,13 +50,25 @@ class ModesPage(QWidget):
         subtitle.setProperty("class", "subtitle")
         layout.addWidget(subtitle)
 
+        # --- section: your modes (list first — Cycle 6 UI 10/11) ----------
+        layout.addWidget(_section_label("Your modes"))
+        self.list_layout = QVBoxLayout()
+        self.list_layout.setSpacing(12)
+        layout.addLayout(self.list_layout)
+
+        # --- section: add a new mode (moved below the list) ----------------
+        layout.addSpacing(10)
+        layout.addWidget(_divider())
+        layout.addWidget(_section_label("Add a new mode"))
         new_card = QFrame()
         new_card.setProperty("class", "card")
+        new_card.setStyleSheet("QFrame.card { border-style: dashed; }")
         new_layout = QHBoxLayout(new_card)
-        new_layout.setContentsMargins(14, 12, 14, 12)
+        new_layout.setContentsMargins(16, 14, 16, 14)
+        new_layout.setSpacing(10)
         self.new_name = QLineEdit()
         self.new_name.setPlaceholderText("mode name (e.g. study)")
-        self.new_name.setMaximumWidth(180)
+        self.new_name.setMaximumWidth(200)
         new_layout.addWidget(self.new_name)
         self.new_apps = QLineEdit()
         self.new_apps.setPlaceholderText("apps and websites, e.g. “chrome and youtube.com”")
@@ -53,9 +80,6 @@ class ModesPage(QWidget):
         new_layout.addWidget(create)
         layout.addWidget(new_card)
 
-        self.list_layout = QVBoxLayout()
-        self.list_layout.setSpacing(10)
-        layout.addLayout(self.list_layout)
         layout.addStretch(1)
 
         outer = QVBoxLayout(self)
@@ -82,7 +106,7 @@ class ModesPage(QWidget):
 
         modes = self.config.get("modes", {}) or {}
         if not modes:
-            hint = QLabel("No modes yet — create one above.")
+            hint = QLabel("No modes yet — create one in the section below.")
             hint.setProperty("class", "hint")
             self.list_layout.addWidget(hint)
             return
@@ -95,13 +119,12 @@ class ModesPage(QWidget):
         card = QFrame()
         card.setProperty("class", "card")
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(16, 14, 16, 14)
-        layout.setSpacing(8)
+        layout.setContentsMargins(18, 16, 18, 16)
+        layout.setSpacing(10)
 
         header = QHBoxLayout()
         title = QLabel(("● " if is_active else "") + name)
-        title.setProperty("class", "subtitle")
-        title.setStyleSheet("font-weight: 600;")
+        title.setProperty("class", "accentTitle")  # Cycle 6 UI 9: theme-colored mode names
         header.addWidget(title, 1)
         toggle = QPushButton("Deactivate" if is_active else "Activate")
         if not is_active:
@@ -117,7 +140,7 @@ class ModesPage(QWidget):
 
         # items chips
         chips = QHBoxLayout()
-        chips.setSpacing(6)
+        chips.setSpacing(8)
         for item in mode.get("apps", []) or []:
             item_name = item.get("name") if isinstance(item, dict) else str(item)
             kind = "🌐 " if isinstance(item, dict) and item.get("type") == "website" else ""
@@ -129,7 +152,7 @@ class ModesPage(QWidget):
             chips.addWidget(chip)
         add_field = QLineEdit()
         add_field.setPlaceholderText("add app or site…")
-        add_field.setMaximumWidth(180)
+        add_field.setMaximumWidth(200)
         add_field.returnPressed.connect(
             lambda f=add_field, n=name: (self.runner.submit(f"update {n} mode add {f.text().strip()}",
                                                             source="modes_page"), f.clear())
@@ -138,9 +161,9 @@ class ModesPage(QWidget):
         chips.addStretch(1)
         layout.addLayout(chips)
 
-        # volume / theme / script / layout row
+        # volume / theme / layout row
         row = QHBoxLayout()
-        row.setSpacing(10)
+        row.setSpacing(12)
         system_state = mode.get("system_state", {}) or {}
 
         row.addWidget(QLabel("volume"))
@@ -159,10 +182,20 @@ class ModesPage(QWidget):
         row.addWidget(theme)
 
         capture = QPushButton("capture window layout")
+        capture.setToolTip("Snapshots where this mode's windows are right now, so activating "
+                           "the mode puts them back in the same places.")
         capture.clicked.connect(lambda _=False, n=name: self.runner.submit(f"{n} mode layout", source="modes_page"))
         row.addWidget(capture)
         row.addStretch(1)
         layout.addLayout(row)
+
+        # Cycle 6 UI 12: be explicit about what "no volume" means
+        if not system_state.get("volume"):
+            volume_hint = QLabel("No volume set for this mode — whatever volume is active when the "
+                                 "mode starts simply stays as it is.")
+            volume_hint.setProperty("class", "hint")
+            volume_hint.setWordWrap(True)
+            layout.addWidget(volume_hint)
 
         # script row
         script_row = QHBoxLayout()
@@ -190,7 +223,7 @@ class ModesPage(QWidget):
             trigger_row.addWidget(remove)
         at_field = QLineEdit()
         at_field.setPlaceholderText("daily at HH:MM")
-        at_field.setMaximumWidth(120)
+        at_field.setMaximumWidth(130)
         at_field.returnPressed.connect(lambda f=at_field, n=name: self._add_time_trigger(n, f))
         trigger_row.addWidget(at_field)
         layout.addLayout(trigger_row)

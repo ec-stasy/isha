@@ -117,11 +117,16 @@ def input_processor(command_input: str) -> list:
     #           & whitespaces (\s) & hyphen (-) & dot (.); exactly what characters
     # |: OR
     # -(?!\d): hyphen kept only when followed by a digit; lookahead conditions
-    tokens = re.sub(r"[^\w\s.-]|-(?!\d)", "", command_input)
+    tokens = re.sub(r"[^\w\s.:-]|-(?!\d)", "", command_input)
 
     # drop any dot that isn't sandwiched between two word characters — a
     # trailing sentence period or stray dot, not a domain separator
     tokens = re.sub(r"(?<!\w)\.|\.(?!\w)", "", tokens)
+
+    # keep a colon only between two digits (clock times like "2:42" — Cycle 6
+    # A10: stripping it used to mangle "2:42 pm" into the integer 242);
+    # any other colon is punctuation and goes
+    tokens = re.sub(r"(?<!\d):|:(?!\d)", "", tokens)
 
     # handling the 'minus' word issue
     tokens = re.sub(r"minus\s+(\d+)", r"-\1", tokens)

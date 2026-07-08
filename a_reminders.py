@@ -87,6 +87,12 @@ def parse_time_tokens(tokens, now: datetime = None):
         elif isinstance(token, int) and i + 1 < len(tokens) and str(tokens[i + 1]).lower() in _UNIT_SECONDS:
             relative_seconds = token * _UNIT_SECONDS[str(tokens[i + 1]).lower()]
             i += 1
+        elif isinstance(token, int) and i + 1 < len(tokens) and str(tokens[i + 1]).lower() in ("am", "pm"):
+            # "2 pm" arriving as two tokens (Cycle 6 A10)
+            parsed = _parse_clock(f"{token}{str(tokens[i + 1]).lower()}")
+            if parsed:
+                clock = parsed
+            i += 1
         else:
             parsed = _parse_clock(text)
             if parsed:
@@ -149,6 +155,26 @@ def due_reminders(config: dict, now: datetime = None, startup: bool = False) -> 
     if fired:
         save_config(config)
     return fired
+
+
+def reschedule(config: dict, reminder_id: str, time_text: str) -> ExecutionResult:
+    """Cycle 6 (Reminders page edit): re-parse a natural time string
+    ("4:30 pm", "tomorrow 9am", "in 20 minutes") for an existing reminder."""
+    from input_processor import input_processor
+    at, repeat = parse_time_tokens(input_processor(time_text))
+    if at is None:
+        return ExecutionResult(False, f"Couldn't read a time from “{time_text}” — try e.g. “4:30 pm” or “tomorrow 9am”.",
+                               error="bad_time")
+    for record in config.get("reminders", []) or []:
+        if record.get("id") == reminder_id:
+            record["at"] = at.isoformat(timespec="seconds")
+            if repeat != "none":
+                record["repeat"] = repeat
+            record["enabled"] = True
+            save_config(config)
+            friendly = at.strftime("%a %d %b, %H:%M")
+            return ExecutionResult(True, f"Rescheduled to {friendly}.", data={"at": record["at"]})
+    return ExecutionResult(False, "That reminder no longer exists.", error="not_found")
 
 
 def snooze(config: dict, reminder_id: str, minutes: int = 10) -> None:

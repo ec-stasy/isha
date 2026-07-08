@@ -13,11 +13,12 @@ pycaw           # exact volume level + multi-device mute (F3); without it, volum
 comtypes        # required by pycaw
 Pillow          # screenshot capture (a_screenshot.py)
 
-# Voice input is a fully optional module: not imported unless the mic/hotkey
-# is used, and degrades to an explicit "not set up" message if either package
-# (or the downloaded Vosk model) is missing.
-# vosk            # offline speech recognition model (~50MB); download separately
-# sounddevice     # microphone capture for voice input
+# Voice input (Cycle 6): bundled online pipeline — sounddevice captures the
+# mic, SpeechRecognition talks to the web speech API. Nothing for the user to
+# download; voice degrades to an explicit "not available" message if either
+# package is missing at runtime.
+sounddevice       # microphone capture for voice input
+SpeechRecognition # online speech-to-text (no key needed)
 
 # Ed25519 signature verification for update manifests —
 # fail-closed: without it, no update ever verifies.

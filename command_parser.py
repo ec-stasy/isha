@@ -131,12 +131,29 @@ VERB_ACTION_MAP = {
     "chup": "mute_volume",              # hinglish: be quiet
     "chup karo": "mute_volume",
     "band karo awaaz": "mute_volume",   # hinglish: turn off sound
+    # Cycle 6 A8 — "<sound word> band ..." phrases must out-rank the generic
+    # "band karo" = close_app verb, so every common aavaz/awaaz spelling gets
+    # its own two-word key (the parser tries longer phrases first)
+    "aavaz band": "mute_volume",
+    "awaaz band": "mute_volume",
+    "awaz band": "mute_volume",
+    "aawaz band": "mute_volume",
+    "avaaz band": "mute_volume",
+    "sound band": "mute_volume",
+    "volume band": "mute_volume",
+    "sound off": "mute_volume",
+    "volume off": "mute_volume",
 
     "unmute": "unmute_volume",
     "unsilence": "unmute_volume",
     "restore sound": "unmute_volume",
     "turn on sound": "unmute_volume",
     "awaaz chalu karo": "unmute_volume", # hinglish: turn on sound
+    "aavaz chalu": "unmute_volume",
+    "awaaz chalu": "unmute_volume",
+    "awaz chalu": "unmute_volume",
+    "sound on": "unmute_volume",
+    "volume on": "unmute_volume",
 
     # toggle/flip a value between states
     "toggle": "toggle_value",
@@ -299,6 +316,20 @@ VERB_ACTION_MAP = {
     "check disk": "check_disk_space",
     "disk space": "check_disk_space",
     "check internet": "check_internet",
+    "internet speed": "check_internet",
+    "speed test": "check_internet",
+    "check speed": "check_internet",
+    "net speed": "check_internet",
+    "test internet": "check_internet",
+
+    # Cycle 6 A9 — contextual actions. Three-word phrases win over the bare
+    # "delete"/"open" verbs because the parser tries longer phrases first.
+    "delete last screenshot": "delete_last_screenshot",
+    "remove last screenshot": "delete_last_screenshot",
+    "cancel last screenshot": "delete_last_screenshot",
+    "clear last screenshot": "delete_last_screenshot",
+    "open last screenshot": "open_last_screenshot",
+    "show last screenshot": "open_last_screenshot",
     "empty": "empty_recycle_bin",
     "show clipboard": "show_clipboard_history",
     "clipboard history": "show_clipboard_history",
@@ -388,6 +419,11 @@ SYSTEM_TARGETS = {
     "speaker": "volume",
     "speakers": "volume",
     "music": "volume",
+    "aavaz": "volume",      # hinglish: sound (common spellings)
+    "awaaz": "volume",
+    "awaz": "volume",
+    "aawaz": "volume",
+    "avaaz": "volume",
 
     # connectivity
     "wifi": "wifi",
@@ -825,6 +861,16 @@ def system_target_number(tokens: list, action: str) -> CommandIR:
 
 # command with a free target (e.g. window/app name) and a direction
 # e.g. "snap chrome to the left", "move notepad top right"
+# cancel/delete with a screenshot-ish object anywhere in the sentence is the
+# contextual "delete the last screenshot" (Cycle 6 A9) — "screenshot" itself
+# is a verb word, so free_target would silently drop it from the target and
+# the executor could never see what the user meant
+def cancel_target(tokens: list, action: str) -> CommandIR:
+    if any(str(t).lower() in ("screenshot", "screenshots") for t in tokens):
+        return CommandIR(action="delete_last_screenshot")
+    return free_target(tokens, action)
+
+
 def free_target_direction(tokens: list, action: str) -> CommandIR:
     commandir_obj = CommandIR(action=action)
 
@@ -891,6 +937,9 @@ def free_target_direction(tokens: list, action: str) -> CommandIR:
 # command with a free target (e.g. reminder subject) and a time component
 # e.g. "remind me to call mom at 5pm", "set reminder for meeting in 20 minutes"
 # time can appear before or after the target — classification is done by token type, not position
+_GREETING_SKIP_WORDS = {"hey", "hi", "ok", "okay"}
+
+
 def free_target_time(tokens: list, action: str) -> CommandIR:
     commandir_obj = CommandIR(action=action)
 
@@ -901,10 +950,28 @@ def free_target_time(tokens: list, action: str) -> CommandIR:
     while i < len(tokens):
         token = tokens[i]
 
-        # time value pattern match (e.g. "5pm", "17:00", "9:30am")
-        if isinstance(token, str) and TIME_VALUE_PATTERN.match(token):
-            time.append(token)
+        # greeting words are only greetings at the very start of a sentence —
+        # inside a reminder body ("say hi") they're content (Cycle 6 A10)
+        if token in _GREETING_SKIP_WORDS and i > 0:
+            free_target_list.append(token)
             i += 1
+            continue
+
+        # time value pattern match (e.g. "5pm", "17:00", "9:30am"); Cycle 6
+        # A10: a detached "am"/"pm" token ("at 2:42 pm") is glued onto the
+        # clock value instead of leaking into the reminder title
+        if isinstance(token, str) and TIME_VALUE_PATTERN.match(token):
+            if i+1 < len(tokens) and str(tokens[i+1]).lower() in ("am", "pm") and not token.endswith(("am", "pm")):
+                time.append(token + str(tokens[i+1]).lower())
+                i += 2
+            else:
+                time.append(token)
+                i += 1
+
+        # bare integer followed by am/pm ("at 2 pm" tokenizes to [2, 'pm'])
+        elif isinstance(token, int) and i+1 < len(tokens) and str(tokens[i+1]).lower() in ("am", "pm"):
+            time.append(f"{token}{str(tokens[i+1]).lower()}")
+            i += 2
 
         # time anchor detected — look ahead for time unit or integer + unit
         elif token in TIME_ANCHORS:
@@ -922,7 +989,11 @@ def free_target_time(tokens: list, action: str) -> CommandIR:
             # anchor with no recognizable time following — skip it
             else:
                 i += 1
-                
+
+        # a stray am/pm that wasn't attached to anything — never title text
+        elif isinstance(token, str) and token.lower() in ("am", "pm"):
+            i += 1
+
         # standalone time unit without anchor (e.g. "tomorrow", "friday")
         elif token in TIME_UNITS:
             time.append(token)
@@ -1225,13 +1296,15 @@ ACTION_FUNCTION_MAP = {
     "set_reminder":         free_target_time,
     "schedule_task":        free_target_time,
     "add_task":             free_target,
-    "cancel_task":          free_target,
+    "cancel_task":          cancel_target,
 
     "copy_item":            free_target,
     "rename_item":          free_target,
     "uninstall_app":        free_target,
 
     "take_screenshot":         verb_only,
+    "delete_last_screenshot":  verb_only,
+    "open_last_screenshot":    verb_only,
     "check_disk_space":        verb_only,
     "check_internet":          verb_only,
     "empty_recycle_bin":       verb_only,
@@ -1374,6 +1447,14 @@ def command_parser(tokens: list) -> list:
             # function gets a clean target list without needing its own fix.
             remaining = tokens[:i] + tokens[i + consumed:]
             return ACTION_FUNCTION_MAP[action](remaining, action)
+
+    # Cycle 6 A7 — verb-less system-value grammar: "volume 70", "volume",
+    # "volume level to 10", "brightness 40". A SYSTEM_TARGETS token with no
+    # verb anywhere in the sentence is an implicit "set"; the level (if any)
+    # is picked up by the same shape function "set volume to 70" uses.
+    for token in tokens:
+        if token in SYSTEM_TARGETS:
+            return system_target_number(tokens, "set_value")
 
     # error handling: no verb/action found
     return CommandIR(errors=["No Action Found!"])  # report error

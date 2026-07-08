@@ -67,14 +67,16 @@ def _app_name(target) -> str:
 
 def _is_path_trustworthy(path: str) -> bool:
     """
-    Track A4 security fix: app_registry_cache.json is a convenience index, not
-    an authority — it's plain JSON, writable by any process running as this
-    user, and open_app used to launch whatever path was in it with no further
-    checks. Poisoning the cache used to be enough to make "open chrome" launch
-    an attacker's binary. This re-validates the path at launch time instead of
-    trusting the cache blindly: it must actually exist, and (on Windows) it
-    must live somewhere a legitimately-installed or PATH-reachable program
-    would — not just anywhere on disk a planted file could sit.
+    Track A4 (revised in Cycle 6, A2): app_registry_cache.json is a
+    convenience index, not an authority — re-validate the path at launch time
+    instead of trusting the cache blindly. The Cycle 2 version also required
+    the path to live under Program Files / AppData / Windows / a PATH dir,
+    which refused perfectly legitimate installs on other drives (VS Code on
+    D:\\, Obsidian on D:\\ — trial log #124/#148). Per THREAT_MODEL.md the
+    honest boundary is "code already running as this user" (which could edit
+    config.json anyway), so the meaningful checks are: the file must exist,
+    must be an .exe, and must not sit in the classic planted-file drop zones
+    (temp, Downloads).
     """
     try:
         candidate = Path(path)
@@ -87,49 +89,56 @@ def _is_path_trustworthy(path: str) -> bool:
     if not IS_WINDOWS:
         return True  # dev/non-Windows: existence is all we can meaningfully assert here
 
-    allowed_roots = [
-        os.environ.get("ProgramFiles"),
-        os.environ.get("ProgramFiles(x86)"),
-        os.environ.get("ProgramW6432"),
-        os.environ.get("LocalAppData"),
-        os.environ.get("APPDATA"),
-        os.environ.get("WinDir"),
-    ]
-    # %TEMP% lives *inside* LocalAppData on Windows, but a planted file in a
-    # world-of-this-user-writable temp dir is exactly the poisoning scenario
-    # this check exists for — carve it out before the root allow-list runs.
+    if resolved.suffix.lower() not in (".exe", ".com", ".bat", ".cmd"):
+        return False
+
+    blocked_roots = []
     temp_dir = os.environ.get("TEMP") or os.environ.get("TMP")
     if temp_dir:
+        blocked_roots.append(temp_dir)
+    profile = os.environ.get("USERPROFILE")
+    if profile:
+        blocked_roots.append(os.path.join(profile, "Downloads"))
+    for root in blocked_roots:
         try:
-            if str(resolved).lower().startswith(str(Path(temp_dir).resolve()).lower() + os.sep):
+            if str(resolved).lower().startswith(str(Path(root).resolve()).lower() + os.sep):
                 return False
         except OSError:
-            pass
-
-    for root in filter(None, allowed_roots):
-        try:
-            root_resolved = Path(root).resolve()
-        except OSError:
             continue
-        if str(resolved).lower().startswith(str(root_resolved).lower()):
-            return True
-
-    # Also allow anything actually reachable on PATH *right now* — re-derived
-    # live, not trusted from the cache — which covers portable/dev tools
-    # installed outside the usual roots without trusting the cache blindly.
-    for directory in os.environ.get("PATH", "").split(os.pathsep):
-        try:
-            if Path(directory).resolve() == resolved.parent:
-                return True
-        except OSError:
-            continue
-
-    return False
+    return True
 
 
 def open_app(ir: CommandIR, config: dict) -> ExecutionResult:
-    path = _app_path(ir.target)
     name = _app_name(ir.target)
+
+    # Cycle 6 A3: curated system utilities resolve to a URI (ms-settings:,
+    # microsoft.windows.camera:, shell:RecycleBinFolder, ...) — not a file on
+    # disk. These come from a built-in table, never the poisonable cache, so
+    # the file-trust check doesn't apply; the URI scheme itself is the guard.
+    uri = ir.target.get("uri") if isinstance(ir.target, dict) else None
+    if uri:
+        if not IS_WINDOWS:
+            return _unsupported_platform("open_app")
+        try:
+            os.startfile(uri)
+            return ExecutionResult(True, f"Opened {name}.", data={"uri": uri})
+        except OSError as e:
+            return ExecutionResult(False, f"Couldn't open {name}: {e}", error="launch_failed")
+
+    # utilities that are launched by bare exe name resolved via PATH (e.g. wt.exe)
+    exe = ir.target.get("exe") if isinstance(ir.target, dict) else None
+    if exe:
+        import shutil as _shutil
+        located = _shutil.which(exe)
+        if not located:
+            return ExecutionResult(False, f"'{name}' isn't installed on this PC.", error="not_found")
+        try:
+            subprocess.Popen([located], shell=False)
+            return ExecutionResult(True, f"Opened {name}.", data={"path": located})
+        except OSError as e:
+            return ExecutionResult(False, f"Couldn't open {name}: {e}", error="launch_failed")
+
+    path = _app_path(ir.target)
     if not path:
         return ExecutionResult(False, f"Don't know how to launch '{name or ir.target}' — no resolved path.", error="unresolved_target")
 
@@ -141,10 +150,14 @@ def open_app(ir: CommandIR, config: dict) -> ExecutionResult:
             error="untrusted_path",
         )
 
+    # Cycle 6 A4: shortcut arguments (a Chrome/Edge web-app's --app-id=...)
+    # are part of what the user installed — launching without them opened a
+    # blank browser instead of the web app.
+    args = ir.target.get("args") if isinstance(ir.target, dict) else None
     try:
         # list form, never shell=True: the resolved path came from our own trusted
         # registry scan, but we still don't want to hand a string to a shell
-        subprocess.Popen([path], shell=False)
+        subprocess.Popen([path, *(args or [])], shell=False)
         return ExecutionResult(True, f"Opened {name}.", data={"path": path})
     except OSError as e:
         return ExecutionResult(False, f"Couldn't open {name}: {e}", error="launch_failed")
@@ -200,21 +213,26 @@ def _volume_key(vk_code: int) -> ExecutionResult:
 
 
 def _set_volume_level(level: int) -> ExecutionResult:
+    # Cycle 6 A6: pycaw's GetSpeakers() returns a raw IMMDevice in some
+    # versions and an AudioDevice wrapper (COM interface on ._dev) in others —
+    # calling .Activate directly crashed every "set volume" on the trial
+    # machine. a_audio owns the dual-path activation now.
+    import a_audio
     try:
-        from ctypes import cast, POINTER
-        from comtypes import CLSCTX_ALL
-        from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+        volume = a_audio.default_endpoint_volume()
     except ImportError:
         return ExecutionResult(
             False,
             "Setting an exact volume level needs the optional 'pycaw' module (not installed).",
             error="missing_dependency",
         )
-
-    devices = AudioUtilities.GetSpeakers()
-    interface = devices.Activate(IAudioEndpointVolume._iid_, CLSCTX_ALL, None)
-    volume = cast(interface, POINTER(IAudioEndpointVolume))
+    if volume is None:
+        return ExecutionResult(False, "No active audio output device found.", error="no_audio_device")
     volume.SetMasterVolumeLevelScalar(max(0, min(100, level)) / 100.0, None)
+    try:
+        volume.SetMute(0, None)  # setting a level implies the user wants to hear it
+    except Exception:
+        pass
     return ExecutionResult(True, f"Set volume to {level}%.", data={"level": level})
 
 
@@ -265,9 +283,20 @@ def _set_theme(dark: bool) -> ExecutionResult:
             value = 0 if dark else 1
             winreg.SetValueEx(key, "AppsUseLightTheme", 0, winreg.REG_DWORD, value)
             winreg.SetValueEx(key, "SystemUsesLightTheme", 0, winreg.REG_DWORD, value)
-        return ExecutionResult(True, f"Switched to {'dark' if dark else 'light'} mode.")
     except OSError as e:
         return ExecutionResult(False, f"Couldn't change theme: {e}", error="registry_write_failed")
+
+    # Cycle 6 A12: without broadcasting the change, running apps (and the
+    # taskbar) don't repaint until something else pokes them — the registry
+    # write alone made it look like "mode theme does nothing".
+    try:
+        import ctypes
+        HWND_BROADCAST, WM_SETTINGCHANGE, SMTO_ABORTIFHUNG = 0xFFFF, 0x001A, 0x0002
+        ctypes.windll.user32.SendMessageTimeoutW(
+            HWND_BROADCAST, WM_SETTINGCHANGE, 0, "ImmersiveColorSet", SMTO_ABORTIFHUNG, 2000, None)
+    except Exception:
+        pass  # the theme is set; the broadcast is best-effort polish
+    return ExecutionResult(True, f"Switched to {'dark' if dark else 'light'} mode.")
 
 
 def mute_volume(ir: CommandIR, config: dict) -> ExecutionResult:
@@ -400,6 +429,59 @@ def _find_window_by_title(substring: str):
     return matches[0] if matches else None
 
 
+def _window_process_stem(hwnd) -> str:
+    """Lowercase exe stem ('chrome', 'code') of the process owning hwnd, or ''."""
+    try:
+        import win32process
+        import ctypes
+        _, pid = win32process.GetWindowThreadProcessId(hwnd)
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        handle = ctypes.windll.kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if not handle:
+            return ""
+        try:
+            buf = ctypes.create_unicode_buffer(1024)
+            size = ctypes.c_ulong(1024)
+            if ctypes.windll.kernel32.QueryFullProcessImageNameW(handle, 0, buf, ctypes.byref(size)):
+                return Path(buf.value).stem.lower()
+        finally:
+            ctypes.windll.kernel32.CloseHandle(handle)
+    except Exception:
+        pass
+    return ""
+
+
+def _find_window_for_app(name: str, path: str = None):
+    """Cycle 6 A11: find a top-level window for an app by its *process image
+    name* first (window titles rarely contain the registry name — VS Code,
+    PWAs, document-first titles), with the old title-substring match as the
+    fallback."""
+    import win32gui
+
+    stems = set()
+    if path:
+        stems.add(Path(path).stem.lower())
+    if name:
+        stems.add(str(name).replace(" ", "").lower())
+        stems.add(str(name).lower())
+
+    matches = []
+
+    def _callback(hwnd, _):
+        if not win32gui.IsWindowVisible(hwnd) or not win32gui.GetWindowText(hwnd):
+            return
+        if _window_process_stem(hwnd) in stems:
+            matches.append(hwnd)
+
+    try:
+        win32gui.EnumWindows(_callback, None)
+    except Exception:
+        pass
+    if matches:
+        return matches[0]
+    return _find_window_by_title(name) if name else None
+
+
 def _window_action(ir: CommandIR, action_name: str, win32_call) -> ExecutionResult:
     if not IS_WINDOWS:
         return _unsupported_platform(action_name)
@@ -478,6 +560,12 @@ def add_task(ir: CommandIR, config: dict) -> ExecutionResult:
 
 
 def cancel_task(ir: CommandIR, config: dict) -> ExecutionResult:
+    # Cycle 6 A9: "delete the last screenshot" parses as a generic delete with
+    # a screenshot-ish target — route it to the contextual handler instead of
+    # failing with "no reminder matching 'last'".
+    target_text = str(ir.target or "").lower()
+    if "screenshot" in target_text or "screen shot" in target_text:
+        return delete_last_screenshot(ir, config)
     import a_reminders
     return a_reminders.delete_reminder(ir, config)
 
@@ -503,11 +591,29 @@ def check_disk_space(ir: CommandIR, config: dict) -> ExecutionResult:
 
 
 def check_internet(ir: CommandIR, config: dict) -> ExecutionResult:
-    return _check_internet()
+    # Cycle 6 A13: a quick reachability probe first (offline answers fast),
+    # then a real download/upload measurement so the user sees actual speeds.
+    probe = _check_internet()
+    if not probe.success:
+        return probe
+    import a_check_internet
+    return a_check_internet.speed_test()
 
 
 def take_screenshot(ir: CommandIR, config: dict) -> ExecutionResult:
     return _take_screenshot(ir, config)
+
+
+def delete_last_screenshot(ir: CommandIR, config: dict) -> ExecutionResult:
+    # Cycle 6 A9 (contextual actions): moves the newest file in the
+    # screenshots folder to the Recycle Bin (recoverable), never a hard delete.
+    import a_screenshot
+    return a_screenshot.delete_last_screenshot(config)
+
+
+def open_last_screenshot(ir: CommandIR, config: dict) -> ExecutionResult:
+    import a_screenshot
+    return a_screenshot.open_last_screenshot(config)
 
 
 def empty_recycle_bin(ir: CommandIR, config: dict) -> ExecutionResult:
@@ -659,6 +765,15 @@ def _open_website_item(item: dict, config: dict, mode_name: str) -> ExecutionRes
     gate = _allow_list_gate(url, config)
     if gate is not None:
         return gate
+
+    # Cycle 6 (UI issue 10): by default a website opens as a tab in the
+    # browser window the user already has, instead of spawning a separate
+    # window per site. The dedicated-window tracking (which lets deactivate
+    # close the site) is now opt-in via settings.web.dedicated_windows.
+    web_settings = (config.get("settings", {}) or {}).get("web", {}) or {}
+    if not web_settings.get("dedicated_windows", False):
+        return open_url(CommandIR(action="open_url", target=url), config)
+
     if not IS_WINDOWS:
         return open_url(CommandIR(action="open_url", target=url), config)
 
@@ -769,14 +884,26 @@ def _run_mode_script(script: str, config: dict) -> ExecutionResult:
 
 
 def _apply_mode_system_state(system_state: dict, config: dict) -> list:
-    """Best-effort: applies volume/theme for a mode; failures are collected, not fatal."""
+    """Best-effort: applies volume/theme for a mode; failures are collected, not fatal.
+
+    Cycle 6 A6/A12: each item is exception-proofed individually — on the trial
+    machine a pycaw crash in the volume step aborted the whole activate_mode
+    handler, so the theme (listed *after* volume) never applied either.
+    """
     problems = []
     if "volume" in system_state:
-        result = set_value(CommandIR(action="set_value", target="volume", params={"level": system_state["volume"]}), config)
+        try:
+            result = set_value(CommandIR(action="set_value", target="volume",
+                                         params={"level": system_state["volume"]}), config)
+        except Exception as e:
+            result = ExecutionResult(False, f"Couldn't set the mode's volume: {e}")
         if not result.success:
             problems.append(result.message)
     if "theme" in system_state and system_state["theme"] in ("dark", "light"):
-        result = _set_theme(system_state["theme"] == "dark") if IS_WINDOWS else _unsupported_platform("set theme")
+        try:
+            result = _set_theme(system_state["theme"] == "dark") if IS_WINDOWS else _unsupported_platform("set theme")
+        except Exception as e:
+            result = ExecutionResult(False, f"Couldn't set the mode's theme: {e}")
         if not result.success:
             problems.append(result.message)
     return problems
@@ -800,7 +927,7 @@ def _apply_mode_window_layout(window_layout: dict) -> list:
 
     problems = []
     for name, geometry in window_layout.items():
-        hwnd = _find_window_by_title(name)
+        hwnd = _find_window_for_app(name)
         if not hwnd:
             problems.append(f"'{name}' has no open window yet to position.")
             continue
@@ -916,7 +1043,7 @@ def capture_mode_layout(ir: CommandIR, config: dict) -> ExecutionResult:
         if isinstance(item, dict) and item.get("type") == "website":
             continue
         name = _mode_item_name(item)
-        hwnd = _find_window_by_title(name)
+        hwnd = _find_window_for_app(name, item.get("path") if isinstance(item, dict) else None)
         if not hwnd:
             missing.append(name)
             continue
@@ -1115,6 +1242,8 @@ ACTION_HANDLER_MAP = {
     "check_disk_space": check_disk_space,
     "check_internet": check_internet,
     "take_screenshot": take_screenshot,
+    "delete_last_screenshot": delete_last_screenshot,
+    "open_last_screenshot": open_last_screenshot,
     "empty_recycle_bin": empty_recycle_bin,
     "show_clipboard_history": show_clipboard_history,
     "clear_clipboard_history": clear_clipboard_history,

@@ -25,10 +25,10 @@ QPushButton.navItem {
     background: transparent;
     border: none;
     border-radius: ${radius_button}px;
-    padding: 9px 12px;
+    padding: 12px 14px;
     text-align: left;
     color: $fg_muted;
-    font-size: ${size_body}pt;
+    font-size: ${size_subtitle}pt;
 }
 QPushButton.navItem:hover { background: $bg_hover; color: $fg; }
 QPushButton.navItem[active="true"] {
@@ -50,13 +50,15 @@ QLabel.secondary { font-size: ${size_secondary}pt; color: $fg_muted; background:
 QLabel { background: transparent; }
 QLabel.success { color: $success; }
 QLabel.error { color: $error; }
+QLabel.accentTitle { font-size: ${size_subtitle}pt; font-weight: 600; color: $accent; background: transparent; }
+QLabel.settingName { font-size: ${size_subtitle}pt; font-weight: 600; background: transparent; }
 
 /* ------- buttons ------- */
 QPushButton {
     background: $bg_raised;
     border: 1px solid $border;
     border-radius: ${radius_button}px;
-    padding: 7px 14px;
+    padding: 8px 16px;
     color: $fg;
 }
 QPushButton:hover { background: $bg_hover; }
@@ -121,14 +123,19 @@ QComboBox QAbstractItemView {
 QPlainTextEdit.mono, QTextEdit.mono { font-family: $font_mono; font-size: ${size_secondary}pt; }
 
 /* ------- toggles / checkboxes ------- */
-QCheckBox { background: transparent; spacing: 8px; }
+QCheckBox { background: transparent; spacing: 9px; }
 QCheckBox::indicator {
-    width: 16px; height: 16px;
+    width: 18px; height: 18px;
     border: 1px solid $border;
     border-radius: 5px;
     background: $bg_raised;
 }
-QCheckBox::indicator:checked { background: $accent; border-color: $accent; }
+/* Cycle 6 (UI issue 8): a real visible tick, not just a filled square */
+QCheckBox::indicator:checked {
+    background: $accent;
+    border-color: $accent;
+    image: url($check_icon);
+}
 
 /* ------- lists ------- */
 QListWidget, QTreeWidget, QTableWidget {

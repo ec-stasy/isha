@@ -50,12 +50,13 @@ DARK = {
 FONT_FAMILY = '"Segoe UI Variable Display", "Segoe UI", sans-serif'
 FONT_MONO = '"Cascadia Mono", "Consolas", monospace'
 
-# type scale (pt) and spacing grid (px)
-SIZE_TITLE = 17
-SIZE_SUBTITLE = 12
-SIZE_BODY = 10.5
-SIZE_SECONDARY = 9.5
-SIZE_HINT = 9
+# type scale (pt) and spacing grid (px) — bumped in Cycle 6 (UI issue 7) so
+# the app reads less compact; settings.ui.font_scale multiplies all of it
+SIZE_TITLE = 18
+SIZE_SUBTITLE = 12.5
+SIZE_BODY = 11
+SIZE_SECONDARY = 10
+SIZE_HINT = 9.5
 
 PAD = 16
 PAD_SM = 8
@@ -89,26 +90,41 @@ def resolve_theme(setting: str) -> str:
         return "dark"
 
 
-def build_qss(theme: str) -> str:
+def build_qss(theme: str, font_scale: float = 1.0) -> str:
     """Fills design/theme.qss's $placeholders with the theme's tokens.
-    ($-substitution, not str.format — QSS is full of literal braces.)"""
+    ($-substitution, not str.format — QSS is full of literal braces.)
+    font_scale (settings.ui.font_scale, Cycle 6) multiplies the whole type
+    scale — the app-wide font size setting."""
     from pathlib import Path
     from string import Template
     template = (Path(__file__).parent / "theme.qss").read_text(encoding="utf-8")
+    try:
+        scale = max(0.8, min(1.4, float(font_scale)))
+    except (TypeError, ValueError):
+        scale = 1.0
+
+    def _pt(size: float) -> str:
+        return f"{size * scale:.1f}"
+
+    assets = Path(__file__).parent.parent / "assets"
+    check_name = "check_dark.svg" if theme == "dark" else "check_light.svg"
+
     tokens = dict(palette(theme))
     tokens.update({
         "font_family": FONT_FAMILY,
         "font_mono": FONT_MONO,
-        "size_title": SIZE_TITLE,
-        "size_subtitle": SIZE_SUBTITLE,
-        "size_body": SIZE_BODY,
-        "size_secondary": SIZE_SECONDARY,
-        "size_hint": SIZE_HINT,
+        "size_title": _pt(SIZE_TITLE),
+        "size_subtitle": _pt(SIZE_SUBTITLE),
+        "size_body": _pt(SIZE_BODY),
+        "size_secondary": _pt(SIZE_SECONDARY),
+        "size_hint": _pt(SIZE_HINT),
         "radius_card": RADIUS_CARD,
         "radius_button": RADIUS_BUTTON,
         "radius_overlay": RADIUS_OVERLAY,
         "pad": PAD,
         "pad_sm": PAD_SM,
         "pad_lg": PAD_LG,
+        # QSS url() wants forward slashes even on Windows
+        "check_icon": str(assets / check_name).replace("\\", "/"),
     })
     return Template(template).substitute({k: str(v) for k, v in tokens.items()})

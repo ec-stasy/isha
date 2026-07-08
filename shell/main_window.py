@@ -110,7 +110,7 @@ class MainWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+B"), self, self.sidebar.toggle)
         QShortcut(QKeySequence("Ctrl+,"), self, lambda: self.show_page("settings"))
         QShortcut(QKeySequence("Ctrl+K"), self, self._focus_command_bar)
-        QShortcut(QKeySequence("F1"), self, lambda: self.show_page("settings", section="help"))
+        QShortcut(QKeySequence("F1"), self, lambda: self.show_page("help"))
 
         # Perceived cold start (P3): the window frame paints first; the
         # dashboard (whose first QLineEdit pays Qt's one-time input-stack
@@ -144,9 +144,22 @@ class MainWindow(QMainWindow):
             from pages.settings import SettingsPage
             return SettingsPage(self.config, self.runner, self)
 
+        def privacy():
+            from pages.info_pages import PrivacyPage
+            return PrivacyPage(self.config, self.runner, self)
+
+        def updates():
+            from pages.info_pages import UpdatesPage
+            return UpdatesPage(self.config, self.runner, self)
+
+        def help_docs():
+            from pages.info_pages import HelpPage
+            return HelpPage(self.config, self.runner, self)
+
         self._page_factories = {
             "dashboard": dashboard, "modes": modes, "reminders": reminders,
             "shortcuts": shortcuts, "customization": customization, "settings": settings,
+            "privacy": privacy, "updates": updates, "help": help_docs,
         }
 
     def show_page(self, key: str, section: str = None) -> None:
@@ -176,9 +189,10 @@ class MainWindow(QMainWindow):
     # -- theme ----------------------------------------------------------
     def apply_theme(self) -> None:
         from PySide6.QtWidgets import QApplication
-        theme = tokens.resolve_theme(
-            (self.config.get("settings", {}).get("ui", {}) or {}).get("theme", "auto"))
-        QApplication.instance().setStyleSheet(tokens.build_qss(theme))
+        ui = (self.config.get("settings", {}).get("ui", {}) or {})
+        theme = tokens.resolve_theme(ui.get("theme", "auto"))
+        QApplication.instance().setStyleSheet(
+            tokens.build_qss(theme, font_scale=ui.get("font_scale", 1.0)))
         self._backdrop.set_theme(theme)
 
     # -- geometry / close behavior ---------------------------------------

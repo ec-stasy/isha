@@ -10,8 +10,12 @@ turn it off under Windows Settings ▸ Accessibility ▸ Keyboard, or leave
 PrtScr to Windows and use `take screenshot` instead.
 
 **Voice input says it's unavailable.**
-Voice needs the optional vosk + sounddevice packages and a downloaded model
-(Settings ▸ Voice). It's fully offline — nothing you say leaves the machine.
+Voice needs an internet connection: the audio of a voice command is sent to
+an online speech service to be transcribed (only the audio, never your files
+or settings — you saw a one-time notice about this on first use). There is
+nothing to install or download; if it fails, check your connection and that
+Windows lets desktop apps use the microphone (Windows Settings ▸ Privacy ▸
+Microphone).
 
 **"Couldn't confidently match … to an installed app."**
 Isha only launches apps it can verify. Try the app's exact name, or add an
